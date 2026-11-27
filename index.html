@@ -464,40 +464,41 @@
             <button class="btn" id="btnStoryDlJpg">Descargar JPG</button>
           </div>
 
+          <div class="story-adj-box" id="storyAdjustBox">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+              <strong style="font-size:12px;color:var(--accent);">Ajustar diseño (arrastra en historia)</strong>
+              <button type="button" class="btn btn-sm" id="btnStoryAdjReset">Reset</button>
+            </div>
+            <div class="side-switcher">
+              <button type="button" class="btn btn-sm btn-primary" id="btnStoryAdjFront">Frente</button>
+              <button type="button" class="btn btn-sm" id="btnStoryAdjBack">Espalda</button>
+            </div>
+            <div class="control-row">
+              <label>Escala (<span id="lblStoryAdjSideScale">Frente</span>): <strong id="lblStoryActiveScale">100%</strong></label>
+              <div class="size-stepper">
+                <button type="button" class="btn btn-sm" id="btnStoryScaleMinus" style="min-width:34px;">−</button>
+                <input type="range" id="storyActiveScale" min="30" max="220" value="100" />
+                <button type="button" class="btn btn-sm" id="btnStoryScalePlus" style="min-width:34px;">+</button>
+              </div>
+            </div>
+            <div class="story-adj-grid">
+              <div class="control-row">
+                <label>X (<span id="lblStoryAdjSide">Frente</span>): <strong id="lblStoryAdjDx">0px</strong></label>
+                <input type="range" id="storyAdjDx" min="-420" max="420" value="0" />
+              </div>
+              <div class="control-row">
+                <label>Y (<span id="lblStoryAdjSide2">Frente</span>): <strong id="lblStoryAdjDy">0px</strong></label>
+                <input type="range" id="storyAdjDy" min="-420" max="420" value="0" />
+              </div>
+            </div>
+          </div>
+
           <details class="compact-details">
-            <summary>Ajustar posición y pie de historia</summary>
+            <summary>Pie de historia (CTA)</summary>
             <div style="display:flex;flex-direction:column;gap:8px;">
               <div class="control-row">
                 <label>Pie / Call to Action</label>
                 <input type="text" id="storyCta" value="DISPONIBLE EN CATÁLOGO #1 · ON RAD4R" />
-              </div>
-              <div class="story-adj-box" id="storyAdjustBox">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-                  <strong style="font-size:12px;color:var(--accent);">Calibración (o arrastra en canvas)</strong>
-                  <button type="button" class="btn btn-sm" id="btnStoryAdjReset">Reset</button>
-                </div>
-                <div class="side-switcher">
-                  <button type="button" class="btn btn-sm btn-primary" id="btnStoryAdjFront">Frente</button>
-                  <button type="button" class="btn btn-sm" id="btnStoryAdjBack">Espalda</button>
-                </div>
-                <div class="story-adj-grid">
-                  <div class="control-row">
-                    <label>Escala Frente: <strong id="lblStoryFrontScale">100%</strong></label>
-                    <input type="range" id="storyFrontScale" min="50" max="160" value="100" />
-                  </div>
-                  <div class="control-row">
-                    <label>Escala Espalda: <strong id="lblStoryBackScale">100%</strong></label>
-                    <input type="range" id="storyBackScale" min="50" max="160" value="100" />
-                  </div>
-                  <div class="control-row">
-                    <label>X (<span id="lblStoryAdjSide">Frente</span>): <strong id="lblStoryAdjDx">0px</strong></label>
-                    <input type="range" id="storyAdjDx" min="-180" max="180" value="0" />
-                  </div>
-                  <div class="control-row">
-                    <label>Y (<span id="lblStoryAdjSide2">Frente</span>): <strong id="lblStoryAdjDy">0px</strong></label>
-                    <input type="range" id="storyAdjDy" min="-180" max="180" value="0" />
-                  </div>
-                </div>
               </div>
             </div>
           </details>
@@ -591,7 +592,7 @@
 
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js?v=11").catch(() => {});
+      navigator.serviceWorker.register("./sw.js?v=12").catch(() => {});
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
@@ -755,7 +756,7 @@
     }
 
     async function loadInventory() {
-      const res = await fetch("./inventario.json?v=11");
+      const res = await fetch("./inventario.json?v=12");
       INVENTORY = await res.json();
       await checkLocalServer();
       applyStateToInventory(INVENTORY);
@@ -1483,15 +1484,15 @@
 
     function syncStoryAdjustUI() {
       const isFront = storyAdjust.activeSide === "front";
+      const sideLabel = isFront ? "Frente" : "Espalda";
       const cur = storyAdjust[storyAdjust.activeSide];
       if ($("btnStoryAdjFront")) $("btnStoryAdjFront").classList.toggle("btn-primary", isFront);
       if ($("btnStoryAdjBack")) $("btnStoryAdjBack").classList.toggle("btn-primary", !isFront);
-      if ($("lblStoryAdjSide")) $("lblStoryAdjSide").textContent = isFront ? "Frente" : "Espalda";
-      if ($("lblStoryAdjSide2")) $("lblStoryAdjSide2").textContent = isFront ? "Frente" : "Espalda";
-      if ($("storyFrontScale")) $("storyFrontScale").value = storyAdjust.front.scale;
-      if ($("storyBackScale")) $("storyBackScale").value = storyAdjust.back.scale;
-      if ($("lblStoryFrontScale")) $("lblStoryFrontScale").textContent = storyAdjust.front.scale + "%";
-      if ($("lblStoryBackScale")) $("lblStoryBackScale").textContent = storyAdjust.back.scale + "%";
+      if ($("lblStoryAdjSideScale")) $("lblStoryAdjSideScale").textContent = sideLabel;
+      if ($("lblStoryAdjSide")) $("lblStoryAdjSide").textContent = sideLabel;
+      if ($("lblStoryAdjSide2")) $("lblStoryAdjSide2").textContent = sideLabel;
+      if ($("storyActiveScale")) $("storyActiveScale").value = cur.scale;
+      if ($("lblStoryActiveScale")) $("lblStoryActiveScale").textContent = cur.scale + "%";
       if ($("storyAdjDx")) $("storyAdjDx").value = cur.dx;
       if ($("storyAdjDy")) $("storyAdjDy").value = cur.dy;
       if ($("lblStoryAdjDx")) $("lblStoryAdjDx").textContent = cur.dx + "px";
@@ -1930,19 +1931,19 @@
         renderStoryCanvas();
       });
     }
-    if ($("storyFrontScale")) {
-      $("storyFrontScale").addEventListener("input", () => {
-        storyAdjust.front.scale = Number($("storyFrontScale").value);
-        syncStoryAdjustUI();
-        scheduleStoryRender();
-      });
+    const setActiveStoryScale = (nextScale) => {
+      storyAdjust[storyAdjust.activeSide].scale = Math.max(30, Math.min(220, Math.round(nextScale)));
+      syncStoryAdjustUI();
+      scheduleStoryRender();
+    };
+    if ($("storyActiveScale")) {
+      $("storyActiveScale").addEventListener("input", () => setActiveStoryScale(Number($("storyActiveScale").value)));
     }
-    if ($("storyBackScale")) {
-      $("storyBackScale").addEventListener("input", () => {
-        storyAdjust.back.scale = Number($("storyBackScale").value);
-        syncStoryAdjustUI();
-        scheduleStoryRender();
-      });
+    if ($("btnStoryScaleMinus")) {
+      $("btnStoryScaleMinus").addEventListener("click", () => setActiveStoryScale(storyAdjust[storyAdjust.activeSide].scale - 5));
+    }
+    if ($("btnStoryScalePlus")) {
+      $("btnStoryScalePlus").addEventListener("click", () => setActiveStoryScale(storyAdjust[storyAdjust.activeSide].scale + 5));
     }
     if ($("storyAdjDx")) {
       $("storyAdjDx").addEventListener("input", () => {
@@ -1970,8 +1971,8 @@
     const startStoryDrag = (clientX, clientY) => {
       if ($("storyTemplate").value !== "dual_story") return;
       const pt = getStoryCanvasCoords(clientX, clientY);
-      const dFront = Math.hypot(pt.x - FLATLAY_FRONT_SHIRT.cx, pt.y - FLATLAY_FRONT_SHIRT.cy);
-      const dBack = Math.hypot(pt.x - FLATLAY_BACK_SHIRT.cx, pt.y - FLATLAY_BACK_SHIRT.cy);
+      const dFront = Math.hypot(pt.x - (FLATLAY_FRONT_SHIRT.cx + storyAdjust.front.dx), pt.y - (FLATLAY_FRONT_SHIRT.cy + storyAdjust.front.dy));
+      const dBack = Math.hypot(pt.x - (FLATLAY_BACK_SHIRT.cx + storyAdjust.back.dx), pt.y - (FLATLAY_BACK_SHIRT.cy + storyAdjust.back.dy));
       const side = dFront <= dBack ? "front" : "back";
       storyAdjust.activeSide = side;
       syncStoryAdjustUI();
@@ -1982,8 +1983,8 @@
       if (!storyDragState) return;
       const pt = getStoryCanvasCoords(clientX, clientY);
       const cur = storyAdjust[storyDragState.side];
-      cur.dx = Math.max(-180, Math.min(180, Math.round(storyDragState.origDx + (pt.x - storyDragState.startX))));
-      cur.dy = Math.max(-180, Math.min(180, Math.round(storyDragState.origDy + (pt.y - storyDragState.startY))));
+      cur.dx = Math.max(-420, Math.min(420, Math.round(storyDragState.origDx + (pt.x - storyDragState.startX))));
+      cur.dy = Math.max(-420, Math.min(420, Math.round(storyDragState.origDy + (pt.y - storyDragState.startY))));
       syncStoryAdjustUI();
       scheduleStoryRender();
     };
