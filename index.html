@@ -224,6 +224,28 @@
       border: 1px solid var(--border); background: var(--bg); color: var(--muted); user-select: none;
     }
     .chip.selected { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+    .cat-card-thumb.is-story img { object-fit: cover; }
+    .cat-designs-list {
+      display: flex; flex-direction: column; gap: 4px; padding: 7px 9px;
+      border-radius: 7px; background: var(--bg); border: 1px solid var(--border); font-size: 11px;
+    }
+    .cat-design-pill { display: flex; justify-content: space-between; gap: 6px; color: var(--text); }
+    .cat-design-pill span:last-child { color: var(--muted); white-space: nowrap; }
+    .story-saved-strip {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin-top: 10px;
+    }
+    .saved-shirt-chip {
+      display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border); font-size: 11px;
+    }
+    .saved-shirt-chip img {
+      width: 36px; height: 64px; object-fit: cover; border-radius: 5px; border: 1px solid var(--border); flex-shrink: 0;
+    }
+    .cat-print-bar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+      margin-top: 10px; padding: 10px 12px; border-radius: 8px;
+      background: rgba(0, 229, 160, 0.06); border: 1px solid rgba(0, 229, 160, 0.35);
+    }
 
     .dtf-piece-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .dtf-piece-item {
@@ -463,6 +485,10 @@
             <button class="btn btn-primary" id="btnStoryDlPng">Descargar PNG</button>
             <button class="btn" id="btnStoryDlJpg">Descargar JPG</button>
           </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="btnStorySaveShirt" style="flex:1;">💾 Guardar Camiseta + Historia</button>
+            <button type="button" class="btn btn-warn" id="btnStorySaveAndCat1" style="flex:1;">📋 Guardar y Agregar al Catálogo</button>
+          </div>
 
           <div class="story-adj-box" id="storyAdjustBox">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
@@ -537,13 +563,31 @@
       <div class="panel-box" style="margin-bottom:16px;">
         <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
           <div class="control-row" style="flex:2;min-width:220px;">
-            <label>Añadir Arte de Bóveda o Composición Multicapa al Catálogo #1</label>
+            <label>Escoger Camiseta con Historia o Arte de Bóveda para agregar al Catálogo #1</label>
             <select id="cat1AddSelect"></select>
           </div>
           <button class="btn btn-primary" id="btnCat1Add">+ Añadir al Catálogo #1</button>
           <button class="btn" id="btnCat1ResetDefaults">Restaurar Drops Base (#1)</button>
         </div>
-        <div class="log-box" id="cat1Log" style="max-height:90px;">Catálogo #1 listo. Edita tarjetas, colores/tallas y descarga catalogo_app2.json en 1 clic.</div>
+        <div id="cat1SavedShirtsWrap" style="margin-top:8px;">
+          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Camisetas guardadas con historia y diseños listos</div>
+          <div class="story-saved-strip" id="cat1SavedShirtsStrip"></div>
+        </div>
+        <div class="cat-print-bar" id="cat1PrintBar">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+            <strong style="font-size:12px;color:var(--accent);">LOTE DE IMPRESIÓN DTF (58cm @ 300 DPI)</strong>
+            <span class="pill" id="cat1PrintSummary">Lote: 0 camisetas · 0 piezas</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button type="button" class="btn btn-sm" id="btnCat1SelectAll">Sel. Todas</button>
+            <button type="button" class="btn btn-sm" id="btnCat1SelectNone">Ninguna</button>
+            <button type="button" class="btn btn-sm btn-primary" id="btnCat1SendToDtf">🖨️ Armar Pliego DTF</button>
+            <button type="button" class="btn btn-sm" id="btnCat1DownloadPrintOrder">📄 Descargar Orden DTF</button>
+            <button type="button" class="btn btn-sm" id="btnCat1CopyPrintOrder">📋 Copiar Orden</button>
+            <button type="button" class="btn btn-sm btn-warn" id="btnCat1DispatchPrint">🚀 Mandar a Imprimir</button>
+          </div>
+        </div>
+        <div class="log-box" id="cat1Log" style="max-height:90px;">Catálogo #1 listo. Escoge camisetas con historia, arma el lote y manda a imprimir a 58cm @ 300 DPI.</div>
       </div>
 
       <div class="catalog-grid" id="catalog1Grid"></div>
@@ -556,6 +600,10 @@
           <h3 style="margin:0;font-size:15px;">Piezas "Listo Pliego DTF"</h3>
           <div style="font-size:12px;color:var(--muted);">
             Ancho fijo: <strong style="color:var(--text);">58 cm</strong> @ 300 DPI (6850 px) · Separación mínima: <strong style="color:var(--accent);">1.5 cm (177 px)</strong>
+          </div>
+          <div id="dtfSourceBanner" style="display:none;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-radius:7px;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.35);font-size:11px;">
+            <span id="dtfSourceLabel">Origen: Lote Catálogo #1</span>
+            <button type="button" class="btn btn-sm" id="btnDtfResetSource">Usar Bóveda DTF</button>
           </div>
           <div class="dtf-piece-list" id="dtfPieceList"></div>
           <div class="control-row">
@@ -592,7 +640,7 @@
 
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js?v=12").catch(() => {});
+      navigator.serviceWorker.register("./sw.js?v=13").catch(() => {});
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
@@ -611,6 +659,8 @@
     let INVENTORY = null;
     let LOCAL_ONLINE = false;
     let LAST_DTF_LAYOUT = null;
+    let DTF_BATCH_PIECES = null;
+    let DTF_BATCH_LABEL = "";
     let SAVED_COMPOSITIONS = [];
     let CATALOG1_ITEMS = [];
 
@@ -699,7 +749,7 @@
       document.querySelectorAll(".module").forEach((m) => m.classList.toggle("active", m.id === "tab-" + tabName));
       if (tabName === "dtf") { renderDtfPieces(); computeDtfPreview(); }
       if (tabName === "stories") { populateStorySources(); renderStoryCanvas(); }
-      if (tabName === "catalog1") { populateCat1AddSelect(); renderCatalog1(); }
+      if (tabName === "catalog1") { populateCat1AddSelect(); renderCat1SavedShirtsStrip(); renderCatalog1(); }
     }
 
     document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -756,7 +806,7 @@
     }
 
     async function loadInventory() {
-      const res = await fetch("./inventario.json?v=12");
+      const res = await fetch("./inventario.json?v=13");
       INVENTORY = await res.json();
       await checkLocalServer();
       applyStateToInventory(INVENTORY);
@@ -771,6 +821,7 @@
       renderDtfPieces();
       populateStorySources();
       populateCat1AddSelect();
+      renderCat1SavedShirtsStrip();
       renderCatalog1();
     }
 
@@ -1291,6 +1342,35 @@
       return canvas.toDataURL("image/jpeg", 0.86);
     }
 
+    function extractDesignsFromComposition(comp) {
+      if (Array.isArray(comp?.designs) && comp.designs.length) return comp.designs;
+      const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
+      const out = [];
+      const pushLayer = (l, side) => {
+        if (!l) return;
+        const ref = byId[l.id] || {};
+        out.push({
+          id: l.id || ref.id || "",
+          title: l.title || ref.title || "Diseño",
+          drop: l.drop || ref.drop || "Drop",
+          drop_num: l.drop_num || ref.drop_num || "",
+          side: side || l.side || "back",
+          dtf_width_cm: Number(l.dtf_width_cm || ref.dtf_width_cm) || 30,
+          filename: l.filename || ref.filename || "",
+          url: l.url || ref.url || "",
+          width_px: l.width_px || ref.width_px || 2400,
+          height_px: l.height_px || ref.height_px || 3000,
+        });
+      };
+      if (comp?.frontLayers?.length || comp?.backLayers?.length) {
+        (comp.frontLayers || []).forEach((l) => pushLayer(l, "front"));
+        (comp.backLayers || []).forEach((l) => pushLayer(l, "back"));
+      } else {
+        (comp?.layers || []).forEach((l) => pushLayer(l, l.side || "back"));
+      }
+      return out;
+    }
+
     $("btnSaveComposition").addEventListener("click", async () => {
       const totalLayers = garmentProject.frontLayers.length + garmentProject.backLayers.length;
       if (!totalLayers) {
@@ -1315,12 +1395,14 @@
         ],
         created_at: new Date().toISOString().slice(0, 19),
       };
+      comp.designs = extractDesignsFromComposition(comp);
       comp.previewDataUrl = await renderCompositionToCanvas(comp, 320, 280);
       SAVED_COMPOSITIONS.unshift(comp);
       saveJsonStorage(COMP_STORAGE_KEY, SAVED_COMPOSITIONS);
       renderSavedCompositions();
       populateStorySources();
       populateCat1AddSelect();
+      renderCat1SavedShirtsStrip();
       updateStatsBar();
       $("fitterLog").textContent = `Conjunto "${name}" guardado (${comp.frontLayers.length} frente + ${comp.backLayers.length} espalda). Disponible en Historias Dual y Catálogo #1.`;
     });
@@ -1348,13 +1430,16 @@
       SAVED_COMPOSITIONS.forEach((c, idx) => {
         const fCount = (c.frontLayers || []).length;
         const bCount = (c.backLayers || (c.frontLayers ? [] : c.layers) || []).length;
+        const designList = extractDesignsFromComposition(c);
+        const designSummary = designList.map((d) => `${d.side === "front" ? "F" : "E"}:${d.title}`).slice(0, 3).join(" · ");
+        const thumbUrl = c.storyPreviewDataUrl || c.previewDataUrl || c.baseUrl;
         const div = document.createElement("div");
         div.className = "comp-item";
         div.innerHTML = `
-          <img src="${c.previewDataUrl || c.baseUrl}" alt="${escHtml(c.name)}" />
+          <img src="${thumbUrl}" alt="${escHtml(c.name)}" />
           <div style="flex:1;min-width:0;">
-            <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</strong>
-            <span style="color:var(--muted);font-size:11px;">${fCount}F + ${bCount}E · ${c.garmentTone || "#121214"} · ${c.created_at.slice(0, 10)}</span>
+            <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)} ${c.storyPreviewDataUrl ? '<span style="color:var(--accent);font-size:10px;">[Historia 9:16]</span>' : ""}</strong>
+            <span style="color:var(--muted);font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fCount}F + ${bCount}E · ${escHtml(designSummary || (c.garmentTone || "#121214"))}</span>
           </div>
           <button class="btn btn-sm act-load" title="Cargar en Probador">Cargar</button>
           <button class="btn btn-sm act-story" title="Enviar a Historias">Historia</button>
@@ -1377,10 +1462,18 @@
         });
         div.querySelector(".act-story").addEventListener("click", () => {
           switchTab("stories");
-          $("storyTemplate").value = "dual_story";
+          $("storyTemplate").value = c.storyMeta?.template || "dual_story";
           if ($("storyDualSource")) $("storyDualSource").value = "comp:" + c.id;
+          if ($("storyStyleBg") && c.storyMeta?.styleBg) $("storyStyleBg").value = c.storyMeta.styleBg;
           if ($("storyGarmentTone") && c.garmentTone) setGarmentTone(c.garmentTone);
-          $("storyTitle").value = c.name.toUpperCase();
+          $("storyTitle").value = c.storyMeta?.title || c.name.toUpperCase();
+          if (c.storyMeta?.subtitle) $("storySubtitle").value = c.storyMeta.subtitle;
+          if (c.storyMeta?.cta) $("storyCta").value = c.storyMeta.cta;
+          if (c.storyMeta?.adjust) {
+            storyAdjust.front = { ...storyAdjust.front, ...(c.storyMeta.adjust.front || {}) };
+            storyAdjust.back = { ...storyAdjust.back, ...(c.storyMeta.adjust.back || {}) };
+            syncStoryAdjustUI();
+          }
           renderStoryCanvas();
         });
         div.querySelector(".act-cat1").addEventListener("click", () => {
@@ -1393,6 +1486,7 @@
           renderSavedCompositions();
           populateStorySources();
           populateCat1AddSelect();
+          renderCat1SavedShirtsStrip();
           updateStatsBar();
         });
         list.appendChild(div);
@@ -2019,8 +2113,108 @@
       runRemoteRender3D($("storyDropNum").value.trim(), "dual_story", true, $("storyLog"));
     });
 
+    function captureStoryThumbnailDataUrl() {
+      const src = $("storyCanvas");
+      const thumb = document.createElement("canvas");
+      thumb.width = 270;
+      thumb.height = 480;
+      const tctx = thumb.getContext("2d");
+      tctx.drawImage(src, 0, 0, thumb.width, thumb.height);
+      return thumb.toDataURL("image/jpeg", 0.82);
+    }
+
+    function getCurrentStoryMeta() {
+      return {
+        template: $("storyTemplate")?.value || "dual_story",
+        styleBg: $("storyStyleBg")?.value || "flatlay",
+        title: $("storyTitle")?.value.trim() || "ON RAD4R // DROP",
+        subtitle: $("storySubtitle")?.value.trim() || "OOO DARK EDITION",
+        cta: $("storyCta")?.value.trim() || "DISPONIBLE EN CATÁLOGO #1 · ON RAD4R",
+        garmentTone: $("storyGarmentTone")?.value || garmentProject.garmentTone || "#121214",
+        adjust: JSON.parse(JSON.stringify(storyAdjust)),
+      };
+    }
+
+    async function saveShirtWithStory({ addToCatalog = false } = {}) {
+      await renderStoryCanvas();
+      const dualVal = $("storyDualSource")?.value || "probador:activo";
+      const storyMeta = getCurrentStoryMeta();
+      const storyPreviewDataUrl = captureStoryThumbnailDataUrl();
+
+      let comp = null;
+      if (dualVal.startsWith("comp:")) {
+        const cid = dualVal.slice(5);
+        comp = SAVED_COMPOSITIONS.find((c) => c.id === cid) || null;
+      }
+
+      if (comp) {
+        comp.garmentTone = storyMeta.garmentTone;
+        comp.storyMeta = storyMeta;
+        comp.storyPreviewDataUrl = storyPreviewDataUrl;
+        comp.designs = extractDesignsFromComposition(comp);
+        comp.updated_at = new Date().toISOString().slice(0, 19);
+      } else {
+        const proj = resolveDualProjectSource(dualVal) || {
+          frontLayers: garmentProject.frontLayers,
+          backLayers: garmentProject.backLayers,
+          garmentTone: garmentProject.garmentTone,
+        };
+        const frontL = (proj.frontLayers || []).map((l) => ({ ...l }));
+        const backL = (proj.backLayers || []).map((l) => ({ ...l }));
+        if (!frontL.length && !backL.length) {
+          $("storyLog").textContent = "No hay diseños activos en Frente o Espalda. Arma la camiseta en Probador o elige una prenda.";
+          return null;
+        }
+        const name = storyMeta.title || `Camiseta (${frontL.length}F + ${backL.length}E)`;
+        comp = {
+          id: "comp_" + Date.now(),
+          name,
+          garmentTone: storyMeta.garmentTone,
+          frontBaseUrl: garmentProject.frontBaseUrl,
+          backBaseUrl: garmentProject.backBaseUrl,
+          frontLayers: frontL,
+          backLayers: backL,
+          baseUrl: garmentProject.backBaseUrl || garmentProject.frontBaseUrl,
+          baseLabel: "Historia 1080×1920",
+          layers: [
+            ...frontL.map((l) => ({ ...l, side: "front" })),
+            ...backL.map((l) => ({ ...l, side: "back" })),
+          ],
+          storyMeta,
+          storyPreviewDataUrl,
+          created_at: new Date().toISOString().slice(0, 19),
+        };
+        comp.designs = extractDesignsFromComposition(comp);
+        comp.previewDataUrl = await renderCompositionToCanvas(comp, 320, 280);
+        SAVED_COMPOSITIONS.unshift(comp);
+      }
+
+      saveJsonStorage(COMP_STORAGE_KEY, SAVED_COMPOSITIONS);
+      renderSavedCompositions();
+      populateStorySources();
+      if ($("storyDualSource")) $("storyDualSource").value = "comp:" + comp.id;
+      populateCat1AddSelect();
+      renderCat1SavedShirtsStrip();
+      updateStatsBar();
+
+      const msg = `Camiseta "${comp.name}" guardada con su historia 1080×1920 y ${comp.designs.length} diseño(s) asociado(s).`;
+      $("storyLog").textContent = msg;
+
+      if (addToCatalog) {
+        addCompositionToCatalog1(comp);
+        switchTab("catalog1");
+      }
+      return comp;
+    }
+
+    $("btnStorySaveShirt").addEventListener("click", () => saveShirtWithStory({ addToCatalog: false }));
+    $("btnStorySaveAndCat1").addEventListener("click", () => saveShirtWithStory({ addToCatalog: true }));
+
     // ==================== MÓDULO 4: CATÁLOGO #1 (APP 2) ====================
     function normalizeCatalogItem(it) {
+      const designs = Array.isArray(it.designs) && it.designs.length
+        ? it.designs
+        : (it.composition ? extractDesignsFromComposition(it.composition) : []);
       return {
         id: it.id,
         title: it.title || "Prenda ON RAD4R",
@@ -2036,6 +2230,8 @@
         height_cm: it.height_cm || 30,
         dpi: DPI,
         status: it.status || "Aprobado Catálogo",
+        print_status: it.print_status || it.status || "Listo para Impresión",
+        print_selected: it.print_selected !== false,
         notes: it.notes || "",
         short_description: it.short_description || it.notes || "Camiseta oversize 240g estampado DTF alta definición ON RAD4R.",
         colors: Array.isArray(it.colors) && it.colors.length ? it.colors : ["Negro", "Carbón"],
@@ -2043,6 +2239,9 @@
         dtf_width_cm: it.dtf_width_cm || 30,
         promo_render: it.promo_render || null,
         composition: it.composition || null,
+        designs,
+        storyMeta: it.storyMeta || null,
+        storyPreviewDataUrl: it.storyPreviewDataUrl || null,
         previewDataUrl: it.previewDataUrl || null,
       };
     }
@@ -2085,15 +2284,50 @@
       const sel = $("cat1AddSelect");
       const opts = [
         SAVED_COMPOSITIONS.length
-          ? `<optgroup label="Composiciones Multicapa Guardadas">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${c.layers.length} capas)</option>`).join("")}</optgroup>`
+          ? `<optgroup label="Camisetas con Historia Guardadas">${SAVED_COMPOSITIONS.map((c) => {
+              const ds = extractDesignsFromComposition(c);
+              const tag = c.storyPreviewDataUrl ? "📸 Historia · " : "";
+              return `<option value="comp:${c.id}">${escHtml(c.name)} (${tag}${ds.length} diseños)</option>`;
+            }).join("")}</optgroup>`
           : "",
         `<optgroup label="Artes de Bóveda">${allDesigns().map((d) => `<option value="art:${d.id}">${escHtml(d.drop)} — ${escHtml(d.title)} (${escHtml(d.status)})</option>`).join("")}</optgroup>`
       ].join("");
       sel.innerHTML = opts;
     }
 
+    function renderCat1SavedShirtsStrip() {
+      const strip = $("cat1SavedShirtsStrip");
+      const wrap = $("cat1SavedShirtsWrap");
+      if (!strip || !wrap) return;
+      if (!SAVED_COMPOSITIONS.length) {
+        wrap.style.display = "none";
+        return;
+      }
+      wrap.style.display = "block";
+      strip.innerHTML = "";
+      SAVED_COMPOSITIONS.forEach((c) => {
+        const ds = extractDesignsFromComposition(c);
+        const alreadyIn = CATALOG1_ITEMS.some((it) => it.id === c.id);
+        const thumb = c.storyPreviewDataUrl || c.previewDataUrl || c.baseUrl;
+        const card = document.createElement("div");
+        card.className = "saved-shirt-chip";
+        card.innerHTML = `
+          <img src="${thumb}" alt="${escHtml(c.name)}" />
+          <div style="flex:1;min-width:0;">
+            <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</strong>
+            <span style="color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ds.length} diseños: ${escHtml(ds.map((d) => d.title).join(", "))}</span>
+            <span style="color:var(--accent);font-size:10px;">${c.storyPreviewDataUrl ? "Historia 1080×1920 ✓" : "Composición Dual"}</span>
+          </div>
+          <button type="button" class="btn btn-sm ${alreadyIn ? "" : "btn-primary"}">${alreadyIn ? "Actualizar" : "+ Agregar"}</button>
+        `;
+        card.querySelector("button").addEventListener("click", () => addCompositionToCatalog1(c));
+        strip.appendChild(card);
+      });
+    }
+
     function addCompositionToCatalog1(comp) {
-      const firstLayer = comp.layers[0] || {};
+      const designs = extractDesignsFromComposition(comp);
+      const firstLayer = designs[0] || (comp.layers || [])[0] || {};
       const item = normalizeCatalogItem({
         id: comp.id,
         title: comp.name,
@@ -2104,15 +2338,35 @@
         filename: comp.id + ".json",
         url: comp.baseUrl,
         status: "Aprobado Catálogo",
-        short_description: `Composición multicapa (${comp.layers.length} diseños) sobre ${comp.baseLabel}.`,
-        composition: { baseUrl: comp.baseUrl, baseLabel: comp.baseLabel, layers: comp.layers },
+        print_status: "Listo para Impresión",
+        print_selected: true,
+        short_description: `Camiseta con ${designs.length} diseños (${designs.map((d) => d.title).join(" + ")}).`,
+        composition: {
+          baseUrl: comp.baseUrl,
+          frontBaseUrl: comp.frontBaseUrl || FRONT_BASE_DEFAULT,
+          backBaseUrl: comp.backBaseUrl || BACK_BASE_DEFAULT,
+          baseLabel: comp.baseLabel,
+          garmentTone: comp.garmentTone || "#121214",
+          frontLayers: comp.frontLayers || [],
+          backLayers: comp.backLayers || [],
+          layers: comp.layers || [],
+        },
+        designs,
+        storyMeta: comp.storyMeta || null,
+        storyPreviewDataUrl: comp.storyPreviewDataUrl || null,
         previewDataUrl: comp.previewDataUrl || null,
       });
-      CATALOG1_ITEMS.unshift(item);
+      const existingIdx = CATALOG1_ITEMS.findIndex((x) => x.id === comp.id);
+      if (existingIdx >= 0) {
+        CATALOG1_ITEMS[existingIdx] = item;
+      } else {
+        CATALOG1_ITEMS.unshift(item);
+      }
       saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
       renderCatalog1();
+      renderCat1SavedShirtsStrip();
       updateStatsBar();
-      $("cat1Log").textContent = `Añadida composición "${comp.name}" al Catálogo #1.`;
+      $("cat1Log").textContent = `${existingIdx >= 0 ? "Actualizada" : "Añadida"} camiseta "${comp.name}" con ${designs.length} diseños e historia al Catálogo #1.`;
     }
 
     $("btnCat1Add").addEventListener("click", () => {
@@ -2149,30 +2403,50 @@
       const grid = $("catalog1Grid");
       grid.innerHTML = "";
       if (!CATALOG1_ITEMS.length) {
-        grid.innerHTML = `<div class="panel-box" style="grid-column:1/-1;color:var(--muted);">No hay prendas en Catálogo #1. Añade un arte o restaura los Drops base.</div>`;
+        grid.innerHTML = `<div class="panel-box" style="grid-column:1/-1;color:var(--muted);">No hay prendas en Catálogo #1. Añade una camiseta con historia o restaura los Drops base.</div>`;
+        updateCat1PrintSummary();
         return;
       }
       CATALOG1_ITEMS.forEach((it, idx) => {
         const card = document.createElement("div");
         card.className = "cat-card";
-        const thumbSrc = it.previewDataUrl || it.url;
+        const thumbSrc = it.storyPreviewDataUrl || it.previewDataUrl || it.url;
+        const itemDesigns = (it.designs && it.designs.length)
+          ? it.designs
+          : (it.composition ? extractDesignsFromComposition(it.composition) : [{ id: it.id, title: it.title, side: "back", dtf_width_cm: it.dtf_width_cm || 30 }]);
+        const isPrintSel = it.print_selected !== false;
         card.innerHTML = `
           <div class="cat-card-head">
-            <div class="cat-card-thumb">
+            <div class="cat-card-thumb ${it.storyPreviewDataUrl ? "is-story" : ""}">
               <img src="${thumbSrc}" alt="${escHtml(it.title)}" />
             </div>
             <div style="flex:1;min-width:0;">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;">
                 <span class="pill" style="font-size:11px;padding:2px 8px;"><strong>${escHtml(it.drop)}</strong></span>
+                <select class="cat-status-sel" style="font-size:11px;padding:3px 6px;">
+                  ${["Listo para Impresión", "Aprobado Catálogo", "Enviado a Impresión"].map((st) => `<option value="${st}" ${(it.print_status || it.status) === st ? "selected" : ""}>${st}</option>`).join("")}
+                </select>
                 <button class="btn btn-sm btn-danger btn-remove">Quitar</button>
               </div>
               <input type="text" class="cat-title-inp" value="${escHtml(it.title)}" style="width:100%;font-weight:700;" />
-              <div style="font-size:11px;color:var(--muted);margin-top:4px;">
-                ${it.composition ? `Multicapa (${it.composition.layers.length} diseños)` : `${it.width_cm}×${it.height_cm} cm · DTF ${it.dtf_width_cm} cm`}
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+                <span>${it.storyPreviewDataUrl ? "Historia 1080×1920 ✓ · " : ""}${itemDesigns.length} diseño(s)</span>
+                <label style="display:flex;align-items:center;gap:4px;color:var(--accent);cursor:pointer;">
+                  <input type="checkbox" class="cat-print-chk" ${isPrintSel ? "checked" : ""} /> Incluir en Lote DTF
+                </label>
               </div>
             </div>
           </div>
           <div class="cat-card-body">
+            <div class="cat-designs-list">
+              <strong style="color:var(--muted);font-size:10px;text-transform:uppercase;">Diseños incluidos para impresión (DTF)</strong>
+              ${itemDesigns.map((ds) => `
+                <div class="cat-design-pill">
+                  <span>${ds.side === "front" ? "Frente" : "Espalda"} · ${escHtml(ds.title)}</span>
+                  <span>${Number(ds.dtf_width_cm) || 30} cm</span>
+                </div>
+              `).join("")}
+            </div>
             <div class="control-row">
               <label>Descripción corta en tienda</label>
               <textarea rows="2" class="cat-desc-inp" style="width:100%;resize:vertical;">${escHtml(it.short_description)}</textarea>
@@ -2194,6 +2468,15 @@
 
         const persist = () => saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
 
+        card.querySelector(".cat-status-sel").addEventListener("change", (e) => {
+          it.print_status = e.target.value;
+          persist();
+        });
+        card.querySelector(".cat-print-chk").addEventListener("change", (e) => {
+          it.print_selected = e.target.checked;
+          persist();
+          updateCat1PrintSummary();
+        });
         card.querySelector(".cat-title-inp").addEventListener("input", (e) => { it.title = e.target.value; persist(); });
         card.querySelector(".cat-desc-inp").addEventListener("input", (e) => { it.short_description = e.target.value; persist(); });
         card.querySelectorAll(".colors-group .chip").forEach((ch) => {
@@ -2218,16 +2501,161 @@
           CATALOG1_ITEMS.splice(idx, 1);
           persist();
           renderCatalog1();
+          renderCat1SavedShirtsStrip();
           updateStatsBar();
         });
         grid.appendChild(card);
       });
+      updateCat1PrintSummary();
     }
+
+    function getCatalogPrintPieces() {
+      const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
+      const selectedItems = CATALOG1_ITEMS.filter((it) => it.print_selected !== false);
+      const pieces = [];
+      selectedItems.forEach((it) => {
+        const list = (it.designs && it.designs.length)
+          ? it.designs
+          : (it.composition ? extractDesignsFromComposition(it.composition) : [{ id: it.id, title: it.title, drop: it.drop, side: "back", dtf_width_cm: it.dtf_width_cm || 30, filename: it.filename, url: it.url, width_px: it.width_px, height_px: it.height_px }]);
+        list.forEach((ds) => {
+          const ref = byId[ds.id] || {};
+          pieces.push({
+            id: ds.id || it.id,
+            title: `${ds.title || ref.title || it.title} (${it.title})`,
+            drop: ds.drop || ref.drop || it.drop || "Drop",
+            side: ds.side || "back",
+            shirtTitle: it.title,
+            width_cm: Number(ds.dtf_width_cm || ref.dtf_width_cm || it.dtf_width_cm) || 30,
+            filename: ds.filename || ref.filename || it.filename || "",
+            url: ds.url || ref.url || it.url || "",
+            width_px: ds.width_px || ref.width_px || it.width_px || 2400,
+            height_px: ds.height_px || ref.height_px || it.height_px || 3000,
+          });
+        });
+      });
+      return { selectedItems, pieces };
+    }
+
+    function updateCat1PrintSummary() {
+      const el = $("cat1PrintSummary");
+      if (!el) return;
+      const { selectedItems, pieces } = getCatalogPrintPieces();
+      if (!pieces.length) {
+        el.textContent = "Lote: 0 camisetas · 0 piezas";
+        return;
+      }
+      const layout = packDtfPiecesLocal(pieces);
+      el.innerHTML = `Lote: <strong>${selectedItems.length}</strong> cam. · <strong>${pieces.length}</strong> piezas · <strong>${layout.total_height_cm} cm</strong> @ 58cm`;
+    }
+
+    function buildCatalogPrintOrderText() {
+      const { selectedItems, pieces } = getCatalogPrintPieces();
+      if (!pieces.length) return null;
+      const layout = packDtfPiecesLocal(pieces);
+      const lines = [
+        "ORDEN DE IMPRESIÓN DTF — CATÁLOGO #1 ON RAD4R (58cm @ 300 DPI)",
+        `FECHA: ${new Date().toISOString()}`,
+        `CAMISETAS_SELECCIONADAS: ${selectedItems.length}`,
+        `TOTAL_PIEZAS_DTF: ${layout.pieces_count}`,
+        `ANCHO_PLIEGO_CM: ${layout.sheet_width_cm}`,
+        `LARGO_TOTAL_CM: ${layout.total_height_cm}`,
+        `APROVECHAMIENTO_PCT: ${layout.utilization_pct}`,
+        "",
+        "CAMISETAS_DEL_LOTE:",
+        ...selectedItems.map((it, i) => {
+          const ds = (it.designs && it.designs.length) ? it.designs : extractDesignsFromComposition(it.composition || { layers: [it] });
+          return `${i + 1}. ${it.title} [${it.drop}] (${it.print_status || it.status}) | Historia=${it.storyPreviewDataUrl ? "SI" : "NO"} | Colores=${it.colors.join(",")} | Tallas=${it.sizes.join(",")} | Diseños: ${ds.map((d) => `${d.side === "front" ? "Frente" : "Espalda"}:${d.title}(${d.dtf_width_cm || 30}cm)`).join(" + ")}`;
+        }),
+        "",
+        "PIEZAS_EMPAQUETADAS_58CM_300DPI:",
+        ...layout.placed.map((p) => `- #${p.seq} | ${p.id} | ${p.title} | ${p.w_cm}x${p.h_cm} cm | pos=(${p.x_cm}, ${p.y_cm}) cm | rotado=${p.rotated}`),
+      ];
+      return { text: lines.join("\n"), layout, selectedItems, pieces };
+    }
+
+    $("btnCat1SelectAll").addEventListener("click", () => {
+      CATALOG1_ITEMS.forEach((it) => { it.print_selected = true; });
+      saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+      renderCatalog1();
+    });
+    $("btnCat1SelectNone").addEventListener("click", () => {
+      CATALOG1_ITEMS.forEach((it) => { it.print_selected = false; });
+      saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+      renderCatalog1();
+    });
+    $("btnCat1SendToDtf").addEventListener("click", () => {
+      const { selectedItems, pieces } = getCatalogPrintPieces();
+      if (!pieces.length) {
+        $("cat1Log").textContent = "Selecciona al menos 1 camiseta del Catálogo para armar el pliego DTF.";
+        return;
+      }
+      DTF_BATCH_PIECES = pieces;
+      DTF_BATCH_LABEL = `Lote Catálogo #1 (${selectedItems.length} camisetas · ${pieces.length} piezas)`;
+      switchTab("dtf");
+      $("dtfLog").textContent = `Cargado ${DTF_BATCH_LABEL} en Armador DTF (58cm @ 300 DPI).`;
+    });
+    $("btnCat1DownloadPrintOrder").addEventListener("click", () => {
+      const order = buildCatalogPrintOrderText();
+      if (!order) {
+        $("cat1Log").textContent = "Selecciona al menos 1 camiseta para descargar la orden de impresión.";
+        return;
+      }
+      downloadText("mision_impresion_catalogo_dtf.txt", order.text, "text/plain;charset=utf-8");
+      $("cat1Log").textContent = `Descargada mision_impresion_catalogo_dtf.txt (${order.selectedItems.length} camisetas, ${order.pieces.length} piezas, ${order.layout.total_height_cm} cm).`;
+    });
+    $("btnCat1CopyPrintOrder").addEventListener("click", async () => {
+      const order = buildCatalogPrintOrderText();
+      if (!order) {
+        $("cat1Log").textContent = "Selecciona al menos 1 camiseta para copiar la orden de impresión.";
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(order.text);
+        $("cat1Log").textContent = `Orden de impresión DTF copiada al portapapeles (${order.pieces.length} piezas @ 58cm 300 DPI).`;
+      } catch (_) {
+        downloadText("mision_impresion_catalogo_dtf.txt", order.text, "text/plain;charset=utf-8");
+        $("cat1Log").textContent = "Portapapeles no disponible; descargado mision_impresion_catalogo_dtf.txt.";
+      }
+    });
+    $("btnCat1DispatchPrint").addEventListener("click", async () => {
+      const order = buildCatalogPrintOrderText();
+      if (!order) {
+        $("cat1Log").textContent = "Selecciona al menos 1 camiseta para mandar a imprimir.";
+        return;
+      }
+      if (LOCAL_ONLINE) {
+        try {
+          const r = await fetch(`${LOCAL_API}/api/dtf/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prefix: "pliego_catalogo1_onrad4r",
+              pieces: order.pieces.map((p) => ({ id: p.id, title: p.title, width_cm: p.width_cm })),
+              send_telegram: true,
+            }),
+          });
+          const data = await r.json();
+          if (data.ok) {
+            order.selectedItems.forEach((it) => { it.print_status = "Enviado a Impresión"; });
+            saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+            renderCatalog1();
+            $("cat1Log").textContent = `Lote enviado a servidor local 8787 (${order.pieces.length} piezas). Pliego DTF generado.`;
+            return;
+          }
+        } catch (_) {}
+      }
+      downloadText("mision_impresion_catalogo_dtf.txt", order.text, "text/plain;charset=utf-8");
+      order.selectedItems.forEach((it) => { it.print_status = "Enviado a Impresión"; });
+      saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+      renderCatalog1();
+      $("cat1Log").textContent = `Modo autónomo: descargada orden mision_impresion_catalogo_dtf.txt (${order.pieces.length} piezas @ 58cm 300 DPI) lista para despachar a Radar.`;
+    });
 
     function buildValidatedCatalog1() {
       const cleanItems = CATALOG1_ITEMS.map((it) => {
         const copy = { ...it };
         delete copy.previewDataUrl; // mantener JSON liviano y limpio
+        delete copy.storyPreviewDataUrl;
         return copy;
       });
       return {
@@ -2283,9 +2711,9 @@
     function packDtfPiecesLocal(pieces) {
       const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
       const resolved = pieces.map((req, idx) => {
-        const d = byId[req.id];
-        const origW = d.width_px;
-        const origH = d.height_px;
+        const d = byId[req.id] || req;
+        const origW = d.width_px || req.width_px || 2400;
+        const origH = d.height_px || req.height_px || 3000;
         const targetWcm = Math.max(2.0, Math.min(DTF_WIDTH_CM - 2.0, Number(req.width_cm || pxToCm(origW))));
         let w_px = cmToPx(targetWcm);
         let h_px = Math.max(1, Math.round(origH * (w_px / origW)));
@@ -2294,7 +2722,14 @@
           [w_px, h_px] = [h_px, w_px];
           rotated = true;
         }
-        return { seq: idx + 1, id: d.id, filename: d.filename, title: d.title, w_px, h_px, rotated };
+        return {
+          seq: idx + 1,
+          id: d.id || req.id,
+          filename: d.filename || req.filename || "",
+          title: req.title || d.title || "Pieza DTF",
+          url: req.url || d.url || "",
+          w_px, h_px, rotated,
+        };
       });
       resolved.sort((a, b) => (b.h_px - a.h_px) || (b.w_px - a.w_px));
 
@@ -2331,9 +2766,44 @@
       };
     }
 
+    function getActiveDtfPieces() {
+      if (Array.isArray(DTF_BATCH_PIECES) && DTF_BATCH_PIECES.length) {
+        return DTF_BATCH_PIECES.map((p) => ({
+          id: p.id,
+          title: p.title,
+          drop: p.drop || "Catálogo #1",
+          url: p.url || "",
+          filename: p.filename || "",
+          width_px: p.width_px || 2400,
+          height_px: p.height_px || 3000,
+          dtf_width_cm: Number(p.width_cm || p.dtf_width_cm) || 30,
+        }));
+      }
+      return allDesigns().filter((d) => d.status === "Listo Pliego DTF");
+    }
+
+    if ($("btnDtfResetSource")) {
+      $("btnDtfResetSource").addEventListener("click", () => {
+        DTF_BATCH_PIECES = null;
+        DTF_BATCH_LABEL = "";
+        renderDtfPieces();
+        computeDtfPreview();
+        $("dtfLog").textContent = "Origen restaurado a piezas 'Listo Pliego DTF' de la Bóveda.";
+      });
+    }
+
     function renderDtfPieces() {
       const list = $("dtfPieceList");
-      const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
+      const banner = $("dtfSourceBanner");
+      if (banner) {
+        if (Array.isArray(DTF_BATCH_PIECES) && DTF_BATCH_PIECES.length) {
+          banner.style.display = "flex";
+          $("dtfSourceLabel").textContent = `Origen: ${DTF_BATCH_LABEL || "Lote Catálogo #1"}`;
+        } else {
+          banner.style.display = "none";
+        }
+      }
+      const ready = getActiveDtfPieces();
       if (!ready.length) {
         list.innerHTML = `<div style="color:var(--muted);font-size:12px;">No hay artes marcados como "Listo Pliego DTF".</div>`;
         return;
@@ -2350,14 +2820,17 @@
     }
 
     function computeDtfPreview() {
-      const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
+      const ready = getActiveDtfPieces();
       const sheet = $("dtfSheet");
       if (!ready.length) {
         sheet.innerHTML = ""; LAST_DTF_LAYOUT = null;
         $("dtfMetrics").textContent = "Sin piezas marcadas como Listo Pliego DTF.";
         return;
       }
-      const pieces = ready.map((d) => ({ id: d.id, title: d.title, width_cm: d.dtf_width_cm }));
+      const pieces = ready.map((d) => ({
+        id: d.id, title: d.title, width_cm: d.dtf_width_cm,
+        url: d.url, filename: d.filename, width_px: d.width_px, height_px: d.height_px,
+      }));
       const data = packDtfPiecesLocal(pieces);
       LAST_DTF_LAYOUT = data;
 
@@ -2372,7 +2845,7 @@
         div.style.top = (p.y_cm * scale) + "px";
         div.style.width = (p.w_cm * scale) + "px";
         div.style.height = (p.h_cm * scale) + "px";
-        const src = byId[p.id]?.url || "";
+        const src = p.url || byId[p.id]?.url || "";
         div.innerHTML = `
           <img src="${src}" style="${p.rotated ? "transform:rotate(-90deg);" : ""}" alt="${escHtml(p.title)}" />
           <span class="dtf-tag">#${p.seq} ${p.w_cm}×${p.h_cm}cm</span>
@@ -2386,7 +2859,7 @@
     $("btnExportDtfMission").addEventListener("click", () => {
       computeDtfPreview();
       if (!LAST_DTF_LAYOUT || !LAST_DTF_LAYOUT.placed.length) {
-        $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF'.";
+        $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF' o envía un lote desde Catálogo #1.";
         return;
       }
       const prefix = $("dtfPrefix").value.trim() || "pliego_estudio_onrad4r";
@@ -2408,8 +2881,8 @@
     });
 
     $("btnDtfGenerate").addEventListener("click", async () => {
-      const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
-      if (!ready.length) { $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF'."; return; }
+      const ready = getActiveDtfPieces();
+      if (!ready.length) { $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF' o envía un lote desde Catálogo #1."; return; }
       if (!LOCAL_ONLINE) {
         $("dtfLog").textContent = "Servidor local (127.0.0.1:8787) no activo. Usa 'Exportar mision_pliego_dtf.txt'.";
         return;
