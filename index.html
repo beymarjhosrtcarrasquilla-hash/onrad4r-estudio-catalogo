@@ -440,14 +440,10 @@
               </select>
             </div>
             <div class="control-row">
-              <label>Aura (Simple)</label>
-              <select id="storyAura">
-                <option value="#00e5a0">Verde Radar</option>
-                <option value="#ff3b5c">Rojo Carmesí</option>
-                <option value="#4da3ff">Azul Cibernético</option>
-                <option value="#b45cff">Púrpura Neón</option>
-                <option value="#ffb020">Ámbar Dorado</option>
-                <option value="#6c768a">Carbón Acero</option>
+              <label>Estilo / Fondo</label>
+              <select id="storyStyleBg">
+                <option value="flatlay" selected>Flat-Lay Limpio</option>
+                <option value="dark_ooo">Fondo Oscuro OOO DARK</option>
               </select>
             </div>
           </div>
@@ -595,7 +591,7 @@
 
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js?v=9").catch(() => {});
+      navigator.serviceWorker.register("./sw.js?v=10").catch(() => {});
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
@@ -759,7 +755,7 @@
     }
 
     async function loadInventory() {
-      const res = await fetch("./inventario.json?v=9");
+      const res = await fetch("./inventario.json?v=10");
       INVENTORY = await res.json();
       await checkLocalServer();
       applyStateToInventory(INVENTORY);
@@ -1633,7 +1629,8 @@
       const ctx = canvas.getContext("2d");
       const W = 1080, H = 1920;
       const tpl = $("storyTemplate").value;
-      const aura = $("storyAura").value;
+      const styleBg = $("storyStyleBg") ? $("storyStyleBg").value : "flatlay";
+      const aura = styleBg === "dark_ooo" ? "#00e5a0" : "#9aa4b5";
       const dualVal = $("storyDualSource") ? $("storyDualSource").value : "probador:activo";
       const isDual = tpl === "dual_story";
       const dualProject = resolveDualProjectSource(dualVal) || {
@@ -1661,12 +1658,6 @@
         const bgImg = await loadImageSafe("./assets/bases/base_maestra_dual_flatlay_story.jpg");
         if (renderSeq !== storyRenderSeq) return;
         if (bgImg) {
-          ctx.save();
-          ctx.globalAlpha = 1;
-          ctx.globalCompositeOperation = "source-over";
-          ctx.drawImage(bgImg, 0, 0, W, H);
-          ctx.restore();
-
           const dualPolys = [
             [
               [355,304],[335,312],[310,326],[250,359],[195,407],[140,483],[90,553],[43,616],[28,641],
@@ -1681,6 +1672,18 @@
               [950,1058],[895,984],[835,929],[780,900],[760,889],[740,880],[705,886],[670,888],[635,886]
             ]
           ];
+
+          if (styleBg === "dark_ooo") {
+            ctx.fillStyle = "#08090c";
+            ctx.fillRect(0, 0, W, H);
+          } else {
+            ctx.save();
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = "source-over";
+            ctx.drawImage(bgImg, 0, 0, W, H);
+            ctx.restore();
+          }
+
           ctx.save();
           ctx.beginPath();
           for (const poly of dualPolys) {
@@ -1689,14 +1692,53 @@
             ctx.closePath();
           }
           ctx.clip();
-          if (tone === "#FFFFFF") {
+
+          if (styleBg === "dark_ooo") {
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = "source-over";
+            ctx.drawImage(bgImg, 0, 0, W, H);
+          }
+
+          // Tintado real por silueta conservando pliegues del algodón
+          if (tone === "#121214") {
+            ctx.globalCompositeOperation = "source-over";
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "rgba(14, 15, 18, 0.78)";
+            ctx.fillRect(0, 0, W, H);
+            ctx.globalCompositeOperation = "multiply";
+            ctx.globalAlpha = 0.45;
+            ctx.fillStyle = "#121214";
+            ctx.fillRect(0, 0, W, H);
+          } else if (tone === "#1a1a1c") {
+            ctx.globalCompositeOperation = "source-over";
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "rgba(34, 36, 42, 0.68)";
+            ctx.fillRect(0, 0, W, H);
+            ctx.globalCompositeOperation = "multiply";
+            ctx.globalAlpha = 0.30;
+            ctx.fillStyle = "#1a1a1c";
+            ctx.fillRect(0, 0, W, H);
+          } else if (tone === "#FFFFFF") {
             ctx.globalCompositeOperation = "screen";
-            ctx.globalAlpha = 0.35;
+            ctx.globalAlpha = 0.52;
             ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, W, H);
+            ctx.globalCompositeOperation = "soft-light";
+            ctx.globalAlpha = 0.22;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, W, H);
+          } else if (tone === "#ccba98") {
+            ctx.globalCompositeOperation = "multiply";
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "rgba(204, 186, 152, 0.55)";
+            ctx.fillRect(0, 0, W, H);
+            ctx.globalCompositeOperation = "soft-light";
+            ctx.globalAlpha = 0.28;
+            ctx.fillStyle = "#ccba98";
             ctx.fillRect(0, 0, W, H);
           } else {
             ctx.globalCompositeOperation = "multiply";
-            ctx.globalAlpha = isDarkTone ? 0.45 : 0.78;
+            ctx.globalAlpha = 0.65;
             ctx.fillStyle = tone;
             ctx.fillRect(0, 0, W, H);
           }
@@ -1710,7 +1752,7 @@
         ctx.globalCompositeOperation = "source-over";
 
         // Cabecera superior izquierda (x=72, y=64): logo lineal + ON RAD4R + edición con contraste garantizado
-        const hasLightHeaderBg = Boolean(bgImg);
+        const hasLightHeaderBg = Boolean(bgImg) && styleBg !== "dark_ooo";
         const logoImg = await loadStoryLogoSafe();
         if (renderSeq !== storyRenderSeq) return;
         let logoBottomY = 152;
@@ -1846,7 +1888,7 @@
         renderStoryCanvas();
       });
     }
-    ["storyTemplate", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
+    ["storyTemplate", "storyStyleBg", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
       if (!$(id)) return;
       $(id).addEventListener("input", renderStoryCanvas);
       $(id).addEventListener("change", renderStoryCanvas);
