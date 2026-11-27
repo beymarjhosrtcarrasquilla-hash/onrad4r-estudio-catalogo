@@ -115,9 +115,21 @@
     @media (max-width: 960px) { .fitter-layout, .dtf-layout, .stories-layout { grid-template-columns: 1fr; } }
     .panel-box {
       background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-      padding: 14px; display: flex; flex-direction: column; gap: 12px;
+      padding: 12px; display: flex; flex-direction: column; gap: 10px;
     }
     .control-row { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+    .compact-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .compact-details {
+      border: 1px solid var(--border); border-radius: 8px; background: var(--bg); padding: 8px 10px;
+    }
+    .compact-details summary {
+      cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted);
+      user-select: none; list-style: none; display: flex; justify-content: space-between; align-items: center;
+    }
+    .compact-details summary::-webkit-details-marker { display: none; }
+    .compact-details summary::after { content: "▾"; font-size: 11px; opacity: 0.8; }
+    .compact-details[open] summary { margin-bottom: 8px; color: var(--text); }
+    .compact-details[open] summary::after { content: "▴"; }
     .stage-wrap {
       background: #060709; border: 1px solid var(--border); border-radius: 10px;
       display: grid; place-items: center; padding: 12px; min-height: 620px;
@@ -297,52 +309,50 @@
     <section id="tab-fitter" class="module">
       <div class="fitter-layout">
         <div class="panel-box">
-          <h3 style="margin:0;font-size:15px;">Probador Multicapa Dual (Frente + Espalda)</h3>
-          <div class="control-row">
-            <label>Lado Activo de la Prenda</label>
-            <div class="side-switcher">
-              <button type="button" class="side-btn active" id="btnSideFront" data-side="front">👕 DISEÑAR FRENTE (<span id="frontLayersBadge">0</span> capas)</button>
-              <button type="button" class="side-btn" id="btnSideBack" data-side="back">🔙 DISEÑAR ESPALDA (<span id="backLayersBadge">0</span> capas)</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <h3 style="margin:0;font-size:15px;">Probador Multicapa</h3>
+            <span style="font-size:11px;color:var(--muted);">Frente + Espalda</span>
+          </div>
+          <div class="side-switcher">
+            <button type="button" class="side-btn active" id="btnSideFront" data-side="front">👕 FRENTE (<span id="frontLayersBadge">0</span>)</button>
+            <button type="button" class="side-btn" id="btnSideBack" data-side="back">🔙 ESPALDA (<span id="backLayersBadge">0</span>)</button>
+          </div>
+          <div class="compact-grid-2">
+            <div class="control-row">
+              <label>Tono de Prenda</label>
+              <select id="fitterGarmentTone">
+                <option value="#121214" selected>Negro Sólido</option>
+                <option value="#FFFFFF">Blanco Puro</option>
+                <option value="#1a1a1c">Carbón</option>
+                <option value="#ccba98">Beige Arena</option>
+              </select>
+            </div>
+            <div class="control-row">
+              <label>Base (<span id="lblBaseSide">Frente</span>)</label>
+              <select id="fitterBaseSelect"></select>
             </div>
           </div>
           <div class="control-row">
-            <label>Tono de Tela Unificado (Frente + Espalda)</label>
-            <select id="fitterGarmentTone">
-              <option value="#121214" selected>Negro Sólido (#121214)</option>
-              <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
-              <option value="#1a1a1c">Carbón (#1a1a1c)</option>
-              <option value="#ccba98">Beige Arena (#ccba98)</option>
-            </select>
-          </div>
-          <div class="control-row">
-            <label>Prendas Armadas Guardadas (<span id="savedCompCount">0</span>)</label>
+            <label>Prendas Guardadas (<span id="savedCompCount">0</span>)</label>
             <div class="comp-list" id="savedCompList"></div>
           </div>
-          <div class="control-row">
-            <label>Guardar Conjunto Completo (Frente + Espalda + Tono)</label>
-            <div style="display:flex;gap:6px;">
-              <input type="text" id="compNameInput" placeholder="Nombre ej. Drop 28 Huxley Dual" style="flex:1;" />
-              <button class="btn btn-primary" id="btnSaveComposition">Guardar Composición</button>
-            </div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="compNameInput" placeholder="Nombre ej. Drop 28 Huxley" style="flex:1;min-width:0;" />
+            <button class="btn btn-primary" id="btnSaveComposition">Guardar Composición</button>
           </div>
           <div class="control-row">
-            <label>Base de Camiseta (<span id="lblBaseSide">Frente</span> — assets/bases/)</label>
-            <select id="fitterBaseSelect"></select>
-          </div>
-          <div class="control-row">
-            <label>Añadir Diseño / Logo al Lado Activo</label>
+            <label>Añadir Diseño al Lado Activo</label>
             <div style="display:flex;gap:6px;">
               <select id="fitterArtSelect" style="flex:1;min-width:0;"></select>
-              <button class="btn btn-primary" id="btnAddLayer">+ Agregar diseño</button>
+              <button class="btn btn-primary" id="btnAddLayer">+ Añadir</button>
             </div>
           </div>
-
           <div class="control-row">
-            <label>Diseños en Prenda (<span id="layersCount">0</span>) — toca en la camiseta o aquí</label>
+            <label>Capas (<span id="layersCount">0</span>) — toca en la prenda o chip</label>
             <div class="layers-chips" id="layersList"></div>
           </div>
 
-          <div id="activeLayerControls" style="display:flex;flex-direction:column;gap:9px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+          <div id="activeLayerControls" style="display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
               <strong style="font-size:12px;color:var(--accent);" id="activeLayerTitle">Sin diseño seleccionado</strong>
               <div style="display:flex;gap:4px;">
@@ -353,39 +363,38 @@
               </div>
             </div>
             <div class="control-row">
-              <label>Tamaño: <strong id="lblScale">48%</strong> (arrastra en la prenda para mover)</label>
+              <label>Tamaño: <strong id="lblScale">48%</strong></label>
               <div class="size-stepper">
-                <button type="button" class="btn btn-sm" id="btnSizeMinus">- Tamaño</button>
+                <button type="button" class="btn btn-sm" id="btnSizeMinus" style="min-width:34px;">−</button>
                 <input type="range" id="fitterScale" min="8" max="90" value="48" />
-                <button type="button" class="btn btn-sm" id="btnSizePlus">+ Tamaño</button>
+                <button type="button" class="btn btn-sm" id="btnSizePlus" style="min-width:34px;">+</button>
               </div>
             </div>
             <div class="control-row">
-              <label>Opacidad tinta: <strong id="lblOpacity">95%</strong></label>
+              <label>Opacidad: <strong id="lblOpacity">95%</strong></label>
               <input type="range" id="fitterOpacity" min="30" max="100" value="95" />
             </div>
           </div>
 
           <button type="button" class="btn btn-primary btn-hero" id="btnGoDualStory">Enviar Frente y Espalda a Historia →</button>
-          <div style="font-size:11px;color:var(--muted);line-height:1.35;">Las Historias (1080×1920) se generan y descargan directo desde la web en cualquier momento (sin servidor local).</div>
 
-          <hr style="border:none;border-top:1px solid var(--border);width:100%;margin:2px 0;" />
-          <div class="control-row">
-            <label>Render 3D Real (render_prendas_3d.py · 127.0.0.1:8787 o Misión .txt)</label>
-            <div style="display:flex;gap:6px;">
-              <input type="text" id="renderDropNum" placeholder="Drop ej. 28" style="width:95px;" />
-              <select id="renderLayout" style="flex:1;">
-                <option value="classic">Classic</option>
-                <option value="dual_story">Dual Story</option>
-              </select>
-              <button class="btn" id="btnRunRender3D">Render 3D</button>
+          <details class="compact-details">
+            <summary>Opciones avanzadas · Render 3D / Log</summary>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="renderDropNum" placeholder="Drop ej. 28" style="width:90px;" />
+                <select id="renderLayout" style="flex:1;">
+                  <option value="classic">Classic</option>
+                  <option value="dual_story">Dual Story</option>
+                </select>
+                <button class="btn btn-sm" id="btnRunRender3D">Render 3D</button>
+              </div>
+              <label style="font-size:12px;display:flex;align-items:center;gap:6px;">
+                <input type="checkbox" id="renderSendTg" /> Enviar resultado a Telegram (@Rad4r2076_bot)
+              </label>
+              <div class="log-box" id="fitterLog">Probador dual listo.</div>
             </div>
-            <div style="font-size:11px;color:var(--muted);line-height:1.35;">Si 127.0.0.1:8787 está apagado, genera, descarga y copia al portapapeles <code>mision_render_3d_drop&lt;NUM&gt;.txt</code> para enviarlo a Radar (<code>@Rad4r2076_bot</code>); si está encendido, lo ejecuta directo.</div>
-          </div>
-          <label style="font-size:12px;display:flex;align-items:center;gap:6px;">
-            <input type="checkbox" id="renderSendTg" /> Enviar resultado a Telegram
-          </label>
-          <div class="log-box" id="fitterLog">Probador dual listo. Diseña Frente y Espalda por separado y pulsa "Enviar Frente y Espalda a Historia →".</div>
+          </details>
         </div>
 
         <div class="stage-wrap">
@@ -403,100 +412,110 @@
       <div class="stories-layout">
         <div class="panel-box">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <h3 style="margin:0;font-size:15px;">Compositor Dual Flat-Lay (1080×1920)</h3>
-            <button type="button" class="btn btn-sm" id="btnBackToFitter">← Volver a editar en Probador</button>
+            <h3 style="margin:0;font-size:15px;">Historias (1080×1920)</h3>
+            <button type="button" class="btn btn-sm" id="btnBackToFitter">← Probador</button>
           </div>
-          <div class="control-row">
-            <label>Plantilla de Historia</label>
-            <select id="storyTemplate">
-              <option value="dual_story" selected>Dual Flat-Lay Oficial — Frente + Espalda</option>
-              <option value="single_back">Historia Simple — Espalda</option>
-              <option value="single_front">Historia Simple — Frente</option>
-            </select>
-          </div>
-          <div class="control-row" id="storyDualProjectRow">
-            <label>Prenda Armada (Frente + Espalda)</label>
-            <select id="storyDualSource"></select>
-          </div>
-          <div class="control-row">
-            <label>Tono de Prenda (Sincronizado)</label>
-            <select id="storyGarmentTone">
-              <option value="#121214" selected>Negro Sólido (#121214)</option>
-              <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
-              <option value="#1a1a1c">Carbón (#1a1a1c)</option>
-              <option value="#ccba98">Beige Arena (#ccba98)</option>
-            </select>
-          </div>
-          <div class="control-row">
-            <label>Aura / Color de Fondo OOO DARK</label>
-            <select id="storyAura">
-              <option value="#00e5a0">Verde Radar (#00e5a0)</option>
-              <option value="#ff3b5c">Rojo Carmesí (#ff3b5c)</option>
-              <option value="#4da3ff">Azul Cibernético (#4da3ff)</option>
-              <option value="#b45cff">Púrpura Neón (#b45cff)</option>
-              <option value="#ffb020">Ámbar Dorado (#ffb020)</option>
-              <option value="#6c768a">Carbón Acero (#6c768a)</option>
-            </select>
-          </div>
-          <div class="control-row">
-            <label>Título del Drop / Edición</label>
-            <input type="text" id="storyTitle" value="DROP 28 // ALDOUS HUXLEY" />
-          </div>
-          <div class="control-row">
-            <label>Subtítulo</label>
-            <input type="text" id="storySubtitle" value="OOO DARK EDITION · ALGODÓN 240G" />
-          </div>
-          <div class="control-row">
-            <label>Pie / Call to Action</label>
-            <input type="text" id="storyCta" value="DISPONIBLE EN CATÁLOGO #1 · ON RAD4R" />
-          </div>
-
-          <div class="story-adj-box" id="storyAdjustBox">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-              <strong style="font-size:12px;color:var(--accent);">Calibración Directa (Arrastra en Canvas)</strong>
-              <button type="button" class="btn btn-sm" id="btnStoryAdjReset">Reset</button>
+          <div class="compact-grid-2">
+            <div class="control-row">
+              <label>Plantilla</label>
+              <select id="storyTemplate">
+                <option value="dual_story" selected>Dual Flat-Lay</option>
+                <option value="single_back">Simple — Espalda</option>
+                <option value="single_front">Simple — Frente</option>
+              </select>
             </div>
-            <div class="side-switcher">
-              <button type="button" class="btn btn-sm btn-primary" id="btnStoryAdjFront">Calibrar Frente</button>
-              <button type="button" class="btn btn-sm" id="btnStoryAdjBack">Calibrar Espalda</button>
+            <div class="control-row" id="storyDualProjectRow">
+              <label>Prenda</label>
+              <select id="storyDualSource"></select>
             </div>
-            <div class="story-adj-grid">
-              <div class="control-row">
-                <label>Escala Frente: <strong id="lblStoryFrontScale">100%</strong></label>
-                <input type="range" id="storyFrontScale" min="50" max="160" value="100" />
-              </div>
-              <div class="control-row">
-                <label>Escala Espalda: <strong id="lblStoryBackScale">100%</strong></label>
-                <input type="range" id="storyBackScale" min="50" max="160" value="100" />
-              </div>
-              <div class="control-row">
-                <label>Desplazar X (<span id="lblStoryAdjSide">Frente</span>): <strong id="lblStoryAdjDx">0px</strong></label>
-                <input type="range" id="storyAdjDx" min="-180" max="180" value="0" />
-              </div>
-              <div class="control-row">
-                <label>Desplazar Y (<span id="lblStoryAdjSide2">Frente</span>): <strong id="lblStoryAdjDy">0px</strong></label>
-                <input type="range" id="storyAdjDy" min="-180" max="180" value="0" />
-              </div>
+          </div>
+          <div class="compact-grid-2">
+            <div class="control-row">
+              <label>Tono de Prenda</label>
+              <select id="storyGarmentTone">
+                <option value="#121214" selected>Negro Sólido</option>
+                <option value="#FFFFFF">Blanco Puro</option>
+                <option value="#1a1a1c">Carbón</option>
+                <option value="#ccba98">Beige Arena</option>
+              </select>
+            </div>
+            <div class="control-row">
+              <label>Aura (Simple)</label>
+              <select id="storyAura">
+                <option value="#00e5a0">Verde Radar</option>
+                <option value="#ff3b5c">Rojo Carmesí</option>
+                <option value="#4da3ff">Azul Cibernético</option>
+                <option value="#b45cff">Púrpura Neón</option>
+                <option value="#ffb020">Ámbar Dorado</option>
+                <option value="#6c768a">Carbón Acero</option>
+              </select>
+            </div>
+          </div>
+          <div class="compact-grid-2">
+            <div class="control-row">
+              <label>Título / Drop</label>
+              <input type="text" id="storyTitle" value="DROP 28 // ALDOUS HUXLEY" />
+            </div>
+            <div class="control-row">
+              <label>Subtítulo</label>
+              <input type="text" id="storySubtitle" value="OOO DARK EDITION · 240G" />
             </div>
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary" id="btnStoryRender" style="flex:1;">Actualizar Vista</button>
+            <button class="btn btn-primary" id="btnStoryRender" style="flex:1;">Actualizar</button>
             <button class="btn btn-primary" id="btnStoryDlPng">Descargar PNG</button>
             <button class="btn" id="btnStoryDlJpg">Descargar JPG</button>
           </div>
-          <div style="font-size:11px;color:var(--muted);line-height:1.35;">Exportación 100% web: genera y descarga tu Historia 1080×1920 en PNG o JPG en cualquier momento sin servidor local.</div>
 
-          <hr style="border:none;border-top:1px solid var(--border);width:100%;margin:2px 0;" />
-          <div class="control-row">
-            <label>Render 3D Real (render_prendas_3d.py · 127.0.0.1:8787 o Misión .txt)</label>
-            <div style="display:flex;gap:6px;">
-              <input type="text" id="storyDropNum" placeholder="Drop ej. 28" style="width:100px;" />
-              <button class="btn" id="btnStoryDispatch3D" style="flex:1;">Despachar render_prendas_3d.py</button>
+          <details class="compact-details">
+            <summary>Ajustar posición y pie de historia</summary>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="control-row">
+                <label>Pie / Call to Action</label>
+                <input type="text" id="storyCta" value="DISPONIBLE EN CATÁLOGO #1 · ON RAD4R" />
+              </div>
+              <div class="story-adj-box" id="storyAdjustBox">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                  <strong style="font-size:12px;color:var(--accent);">Calibración (o arrastra en canvas)</strong>
+                  <button type="button" class="btn btn-sm" id="btnStoryAdjReset">Reset</button>
+                </div>
+                <div class="side-switcher">
+                  <button type="button" class="btn btn-sm btn-primary" id="btnStoryAdjFront">Frente</button>
+                  <button type="button" class="btn btn-sm" id="btnStoryAdjBack">Espalda</button>
+                </div>
+                <div class="story-adj-grid">
+                  <div class="control-row">
+                    <label>Escala Frente: <strong id="lblStoryFrontScale">100%</strong></label>
+                    <input type="range" id="storyFrontScale" min="50" max="160" value="100" />
+                  </div>
+                  <div class="control-row">
+                    <label>Escala Espalda: <strong id="lblStoryBackScale">100%</strong></label>
+                    <input type="range" id="storyBackScale" min="50" max="160" value="100" />
+                  </div>
+                  <div class="control-row">
+                    <label>X (<span id="lblStoryAdjSide">Frente</span>): <strong id="lblStoryAdjDx">0px</strong></label>
+                    <input type="range" id="storyAdjDx" min="-180" max="180" value="0" />
+                  </div>
+                  <div class="control-row">
+                    <label>Y (<span id="lblStoryAdjSide2">Frente</span>): <strong id="lblStoryAdjDy">0px</strong></label>
+                    <input type="range" id="storyAdjDy" min="-180" max="180" value="0" />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div style="font-size:11px;color:var(--muted);line-height:1.35;">Si 127.0.0.1:8787 no está activo, genera, descarga y copia al portapapeles <code>mision_render_3d_drop&lt;NUM&gt;.txt</code> para enviarlo a Radar (<code>@Rad4r2076_bot</code>); si está encendido, ejecuta el render local.</div>
-          </div>
-          <div class="log-box" id="storyLog">Canvas 1080×1920 listo para exportar historias OOO DARK.</div>
+          </details>
+
+          <details class="compact-details">
+            <summary>Opciones avanzadas · Render 3D / Log</summary>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="storyDropNum" placeholder="Drop ej. 28" style="width:95px;" />
+                <button class="btn btn-sm" id="btnStoryDispatch3D" style="flex:1;">Despachar render_prendas_3d.py</button>
+              </div>
+              <div class="log-box" id="storyLog">Canvas 1080×1920 listo para exportar historias OOO DARK.</div>
+            </div>
+          </details>
         </div>
 
         <div class="story-canvas-wrap">
@@ -576,7 +595,7 @@
 
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js?v=8").catch(() => {});
+      navigator.serviceWorker.register("./sw.js?v=9").catch(() => {});
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
@@ -740,7 +759,7 @@
     }
 
     async function loadInventory() {
-      const res = await fetch("./inventario.json?v=8");
+      const res = await fetch("./inventario.json?v=9");
       INVENTORY = await res.json();
       await checkLocalServer();
       applyStateToInventory(INVENTORY);
@@ -1172,20 +1191,44 @@
     }, { passive: false });
 
     const IMAGE_CACHE = new Map();
-    function loadImageSafe(src) {
-      if (!src) return Promise.resolve(null);
-      if (IMAGE_CACHE.has(src)) {
-        const cached = IMAGE_CACHE.get(src);
-        if (cached && cached.complete && cached.naturalWidth > 0) return Promise.resolve(cached);
-        IMAGE_CACHE.delete(src);
-      }
+    function loadImageOnce(src, useCors) {
       return new Promise((resolve) => {
         const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => { IMAGE_CACHE.set(src, img); resolve(img); };
+        if (useCors) img.crossOrigin = "anonymous";
+        img.onload = () => {
+          if (img.naturalWidth > 0) {
+            IMAGE_CACHE.set(src, img);
+            resolve(img);
+          } else {
+            resolve(null);
+          }
+        };
         img.onerror = () => resolve(null);
         img.src = src;
       });
+    }
+    async function loadImageSafe(src, fallbacks = []) {
+      const candidates = [src, ...fallbacks].filter(Boolean);
+      for (const candidate of candidates) {
+        const normalized = candidate.replace(/\\/g, "/");
+        if (IMAGE_CACHE.has(normalized)) {
+          const cached = IMAGE_CACHE.get(normalized);
+          if (cached && cached.complete && cached.naturalWidth > 0) return cached;
+          IMAGE_CACHE.delete(normalized);
+        }
+        const imgCors = await loadImageOnce(normalized, true);
+        if (imgCors) return imgCors;
+        const imgNoCors = await loadImageOnce(normalized, false);
+        if (imgNoCors) return imgNoCors;
+      }
+      return null;
+    }
+    function loadStoryLogoSafe() {
+      return loadImageSafe("./assets/logos/logo_on_rad4r_lineal_story.png", [
+        "assets/logos/logo_on_rad4r_lineal_story.png",
+        "./assets/logos/logo_on_rad4r_solo_texto.png",
+        "assets/logos/logo_on_rad4r_solo_texto.png"
+      ]);
     }
 
     async function renderSingleSideToCtx(ctx, baseUrl, layers, boxX, boxY, boxW, boxH, tone) {
@@ -1567,15 +1610,19 @@
 
     function drawTintedImage(ctx, img, x, y, w, h, tintColor) {
       if (!tintColor) { ctx.drawImage(img, x, y, w, h); return; }
-      const off = document.createElement("canvas");
-      off.width = img.width;
-      off.height = img.height;
-      const octx = off.getContext("2d");
-      octx.drawImage(img, 0, 0);
-      octx.globalCompositeOperation = "source-in";
-      octx.fillStyle = tintColor;
-      octx.fillRect(0, 0, off.width, off.height);
-      ctx.drawImage(off, x, y, w, h);
+      try {
+        const off = document.createElement("canvas");
+        off.width = img.width;
+        off.height = img.height;
+        const octx = off.getContext("2d");
+        octx.drawImage(img, 0, 0);
+        octx.globalCompositeOperation = "source-in";
+        octx.fillStyle = tintColor;
+        octx.fillRect(0, 0, off.width, off.height);
+        ctx.drawImage(off, x, y, w, h);
+      } catch (_) {
+        ctx.drawImage(img, x, y, w, h);
+      }
     }
 
     let storyRenderSeq = 0;
@@ -1662,17 +1709,20 @@
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
 
-        // Cabecera superior izquierda (x=72, y=64): logo 480px + título de edición
-        const logoImg = await loadImageSafe("./assets/logos/logo_on_rad4r_lineal_story.png");
+        // Cabecera superior izquierda (x=72, y=64): logo lineal + ON RAD4R + edición con contraste garantizado
+        const hasLightHeaderBg = Boolean(bgImg);
+        const logoImg = await loadStoryLogoSafe();
         if (renderSeq !== storyRenderSeq) return;
-        let logoBottomY = 140;
+        let logoBottomY = 152;
         if (logoImg) {
-          const logoW = 480;
-          const logoH = logoW * (logoImg.height / logoImg.width);
+          const logoW = 460;
+          const logoH = Math.round(logoW * (logoImg.height / logoImg.width));
           ctx.save();
           ctx.globalAlpha = 1;
           ctx.globalCompositeOperation = "source-over";
-          drawTintedImage(ctx, logoImg, 72, 64, logoW, logoH, isDarkTone ? "#ffffff" : null);
+          ctx.shadowColor = hasLightHeaderBg ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.45)";
+          ctx.shadowBlur = 4;
+          drawTintedImage(ctx, logoImg, 72, 64, logoW, logoH, hasLightHeaderBg ? "#111319" : "#ffffff");
           ctx.restore();
           logoBottomY = 64 + logoH;
         }
@@ -1682,12 +1732,12 @@
         ctx.globalCompositeOperation = "source-over";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.fillStyle = isDarkTone ? "#eef1f6" : "#121214";
-        ctx.font = "700 28px Segoe UI, sans-serif";
-        ctx.fillText(title.toUpperCase().slice(0, 34), 72, logoBottomY + 14);
-        ctx.fillStyle = isDarkTone ? "rgba(238,241,246,0.78)" : "rgba(18,18,20,0.75)";
+        ctx.fillStyle = hasLightHeaderBg ? "#111319" : "#eef1f6";
+        ctx.font = "800 28px Segoe UI, sans-serif";
+        ctx.fillText(`ON RAD4R · ${title.toUpperCase()}`.slice(0, 38), 72, logoBottomY + 12);
+        ctx.fillStyle = hasLightHeaderBg ? "rgba(17,19,25,0.82)" : "rgba(238,241,246,0.78)";
         ctx.font = "600 22px Consolas, monospace";
-        ctx.fillText(subtitle.toUpperCase().slice(0, 48), 72, logoBottomY + 52);
+        ctx.fillText(subtitle.toUpperCase().slice(0, 48), 72, logoBottomY + 48);
         ctx.restore();
 
         if ($("storyAdjustBox")) $("storyAdjustBox").style.display = "flex";
@@ -1727,18 +1777,30 @@
       for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
       for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
+      const singleLogoImg = await loadStoryLogoSafe();
+      if (renderSeq !== storyRenderSeq) return;
+      if (singleLogoImg) {
+        const sLogoW = 380;
+        const sLogoH = Math.round(sLogoW * (singleLogoImg.height / singleLogoImg.width));
+        ctx.save();
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        drawTintedImage(ctx, singleLogoImg, (W - sLogoW) / 2, 58, sLogoW, sLogoH, "#ffffff");
+        ctx.restore();
+      }
+
       ctx.fillStyle = aura;
-      ctx.font = "700 26px Consolas, monospace";
+      ctx.font = "700 22px Consolas, monospace";
       ctx.textAlign = "center";
-      ctx.fillText("ON RAD4R // OOO DARK STUDIO", W / 2, 115);
+      ctx.fillText("ON RAD4R // OOO DARK STUDIO", W / 2, 168);
 
       ctx.fillStyle = "#eef1f6";
-      ctx.font = "800 58px Segoe UI, sans-serif";
-      ctx.fillText(title.slice(0, 28), W / 2, 195);
+      ctx.font = "800 54px Segoe UI, sans-serif";
+      ctx.fillText(title.slice(0, 28), W / 2, 224);
 
       ctx.fillStyle = "#9aa4b5";
-      ctx.font = "600 28px Segoe UI, sans-serif";
-      ctx.fillText(subtitle.slice(0, 44), W / 2, 248);
+      ctx.font = "600 26px Segoe UI, sans-serif";
+      ctx.fillText(subtitle.slice(0, 44), W / 2, 268);
 
       const sideView = tpl === "single_front" ? "frente" : "espalda";
       const base = INVENTORY.bases.find((b) => b.view === sideView) || INVENTORY.bases[0];
