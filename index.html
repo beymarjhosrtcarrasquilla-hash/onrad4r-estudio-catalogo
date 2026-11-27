@@ -78,8 +78,10 @@
       border-radius: 7px; padding: 8px 13px; font-size: 13px; font-weight: 600; cursor: pointer;
     }
     button.btn:hover { border-color: var(--muted); }
+    button.btn-sm { padding: 4px 8px; font-size: 11px; }
     button.btn-primary { background: var(--accent); color: #06110d; border-color: var(--accent); }
     button.btn-warn { background: rgba(255, 176, 32, 0.16); color: var(--warn); border-color: var(--warn); }
+    button.btn-danger { background: rgba(255, 77, 109, 0.14); color: var(--danger); border-color: rgba(255, 77, 109, 0.4); }
 
     .grid-vault { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
     .card {
@@ -109,8 +111,8 @@
     .card-actions { display: flex; gap: 6px; margin-top: auto; }
     .card-actions button { flex: 1; font-size: 12px; padding: 6px 8px; }
 
-    .fitter-layout, .dtf-layout { display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
-    @media (max-width: 960px) { .fitter-layout, .dtf-layout { grid-template-columns: 1fr; } }
+    .fitter-layout, .dtf-layout, .stories-layout { display: grid; grid-template-columns: 390px 1fr; gap: 16px; }
+    @media (max-width: 960px) { .fitter-layout, .dtf-layout, .stories-layout { grid-template-columns: 1fr; } }
     .panel-box {
       background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
       padding: 14px; display: flex; flex-direction: column; gap: 12px;
@@ -125,11 +127,67 @@
       overflow: hidden; border-radius: 8px; border: 1px solid var(--border); background: #0e1015;
       user-select: none; touch-action: none;
     }
-    .garment-stage img.base-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .garment-stage img.art-overlay {
-      position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%) scale(1);
-      max-width: 65%; cursor: grab; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+    .garment-stage img.base-img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .garment-stage img.art-layer {
+      position: absolute; transform: translate(-50%, -50%);
+      cursor: grab; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+      border: 1px dashed transparent; border-radius: 4px;
     }
+    .garment-stage img.art-layer.active-layer {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 229, 160, 0.25);
+    }
+
+    .layers-list { display: flex; flex-direction: column; gap: 6px; max-height: 210px; overflow-y: auto; }
+    .layer-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px;
+      background: var(--bg); border: 1px solid var(--border); cursor: pointer; font-size: 12px;
+    }
+    .layer-item.active { border-color: var(--accent); background: rgba(0, 229, 160, 0.08); }
+    .layer-item img { width: 32px; height: 32px; object-fit: contain; background: #161922; border-radius: 4px; }
+    .layer-item-info { flex: 1; min-width: 0; }
+    .layer-item-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .layer-item-info span { font-size: 11px; color: var(--muted); }
+    .layer-actions { display: flex; gap: 3px; }
+
+    .comp-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+    .comp-item {
+      display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border); font-size: 12px;
+    }
+    .comp-item img { width: 36px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+
+    .story-canvas-wrap {
+      background: #060709; border: 1px solid var(--border); border-radius: 10px;
+      display: grid; place-items: center; padding: 16px; min-height: 620px;
+    }
+    #storyCanvas {
+      width: 360px; max-width: 100%; height: auto; aspect-ratio: 9 / 16;
+      border-radius: 10px; border: 1px solid var(--border); background: #090a0d;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65);
+    }
+
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+    .cat-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .cat-card-head {
+      display: flex; gap: 12px; padding: 12px; background: linear-gradient(135deg, #13161f 0%, #0b0c10 100%);
+      border-bottom: 1px solid var(--border); align-items: center;
+    }
+    .cat-card-thumb {
+      width: 88px; height: 112px; border-radius: 8px; background: #090a0d; border: 1px solid var(--border);
+      display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
+    }
+    .cat-card-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .cat-card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border); background: var(--bg); color: var(--muted); user-select: none;
+    }
+    .chip.selected { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
 
     .dtf-piece-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .dtf-piece-item {
@@ -168,13 +226,15 @@
       </div>
       <div>
         <h1>ON RAD4R — ESTUDIO INTERNO</h1>
-        <span>OOO DARK // BÓVEDA · PROBADOR REAL · ARMADOR DTF 58 CM</span>
+        <span>OOO DARK // BÓVEDA · PROBADOR MULTICAPA · HISTORIAS · CATÁLOGO #1 · DTF</span>
       </div>
     </div>
     <nav>
       <button class="tab-btn active" data-tab="vault">1. Bóveda de Artes</button>
-      <button class="tab-btn" data-tab="fitter">2. Probador en Prenda</button>
-      <button class="tab-btn" data-tab="dtf">3. Armador Pliego DTF</button>
+      <button class="tab-btn" data-tab="fitter">2. Probador Multicapa</button>
+      <button class="tab-btn" data-tab="stories">3. Historias (1080×1920)</button>
+      <button class="tab-btn" data-tab="catalog1">4. Catálogo #1 (App 2)</button>
+      <button class="tab-btn" data-tab="dtf">5. Armador DTF</button>
     </nav>
     <div class="stats-bar" id="statsBar">
       <span class="pill">Cargando inventario...</span>
@@ -182,6 +242,7 @@
   </header>
 
   <main>
+    <!-- MÓDULO 1: BÓVEDA -->
     <section id="tab-vault" class="module active">
       <div class="toolbar">
         <div class="toolbar-group">
@@ -202,75 +263,199 @@
           <button class="btn" id="btnReloadInv">Recargar</button>
           <button class="btn" id="btnImportApp2">Importar JSON</button>
           <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;" />
-          <button class="btn btn-primary" id="btnExportApp2">Exportar catalogo_app2.json</button>
+          <button class="btn btn-primary" id="btnGoCatalog1">Ir a Catálogo #1 (App 2) →</button>
         </div>
       </div>
       <div class="grid-vault" id="vaultGrid"></div>
     </section>
 
+    <!-- MÓDULO 2: PROBADOR MULTICAPA -->
     <section id="tab-fitter" class="module">
       <div class="fitter-layout">
         <div class="panel-box">
-          <h3 style="margin:0;font-size:15px;">Configuración de Prenda Real</h3>
+          <h3 style="margin:0;font-size:15px;">Probador Multicapa en Prenda</h3>
           <div class="control-row">
             <label>Base de Camiseta Real (assets/bases/)</label>
             <select id="fitterBaseSelect"></select>
           </div>
           <div class="control-row">
-            <label>Arte Limpio / Logo (assets/artes/)</label>
-            <select id="fitterArtSelect"></select>
-          </div>
-          <div class="control-row">
-            <label>Presets rápidos de zona</label>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="btn" onclick="applyFitterPreset('espalda')">Espalda Oversize</button>
-              <button class="btn" onclick="applyFitterPreset('frente')">Frente Centro</button>
-              <button class="btn" onclick="applyFitterPreset('pecho')">Pecho Izq.</button>
+            <label>Añadir Diseño / Logo a la Prenda</label>
+            <div style="display:flex;gap:6px;">
+              <select id="fitterArtSelect" style="flex:1;min-width:0;"></select>
+              <button class="btn btn-primary" id="btnAddLayer">+ Agregar diseño</button>
             </div>
           </div>
+
           <div class="control-row">
-            <label>Escala: <strong id="lblScale">48%</strong></label>
-            <input type="range" id="fitterScale" min="10" max="90" value="48" />
+            <label>Capas Activas (<span id="layersCount">0</span>) — clic para editar o arrastra en la prenda</label>
+            <div class="layers-list" id="layersList"></div>
           </div>
+
+          <div id="activeLayerControls" style="display:flex;flex-direction:column;gap:9px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="font-size:12px;color:var(--accent);" id="activeLayerTitle">Sin capa seleccionada</strong>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-sm" onclick="applyFitterPreset('espalda')">Espalda</button>
+                <button class="btn btn-sm" onclick="applyFitterPreset('frente')">Frente</button>
+                <button class="btn btn-sm" onclick="applyFitterPreset('pecho')">Pecho</button>
+                <button class="btn btn-sm" onclick="applyFitterPreset('costado')">Costado</button>
+              </div>
+            </div>
+            <div class="control-row">
+              <label>Escala: <strong id="lblScale">48%</strong></label>
+              <input type="range" id="fitterScale" min="8" max="90" value="48" />
+            </div>
+            <div class="control-row">
+              <label>Posición X: <strong id="lblPosX">50%</strong></label>
+              <input type="range" id="fitterX" min="10" max="90" value="50" />
+            </div>
+            <div class="control-row">
+              <label>Posición Y: <strong id="lblPosY">45%</strong></label>
+              <input type="range" id="fitterY" min="12" max="88" value="45" />
+            </div>
+            <div class="control-row">
+              <label>Opacidad tinta: <strong id="lblOpacity">95%</strong></label>
+              <input type="range" id="fitterOpacity" min="30" max="100" value="95" />
+            </div>
+          </div>
+
           <div class="control-row">
-            <label>Posición X: <strong id="lblPosX">50%</strong></label>
-            <input type="range" id="fitterX" min="15" max="85" value="50" />
+            <label>Guardar Combinación Completa (Base + Capas)</label>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="compNameInput" placeholder="Nombre ej. Drop 28 Huxley Dual" style="flex:1;" />
+              <button class="btn btn-primary" id="btnSaveComposition">Guardar Composición</button>
+            </div>
           </div>
+
           <div class="control-row">
-            <label>Posición Y: <strong id="lblPosY">45%</strong></label>
-            <input type="range" id="fitterY" min="18" max="82" value="45" />
+            <label>Prendas Armadas Guardadas (<span id="savedCompCount">0</span>)</label>
+            <div class="comp-list" id="savedCompList"></div>
           </div>
-          <div class="control-row">
-            <label>Opacidad tinta: <strong id="lblOpacity">95%</strong></label>
-            <input type="range" id="fitterOpacity" min="50" max="100" value="95" />
-          </div>
+
           <hr style="border:none;border-top:1px solid var(--border);width:100%;" />
           <div class="control-row">
             <label>Render 3D Real (Servidor Local 127.0.0.1:8787)</label>
             <div style="display:flex;gap:6px;">
-              <input type="text" id="renderDropNum" placeholder="Drop ej. 26" style="width:100px;" />
-              <select id="renderLayout">
+              <input type="text" id="renderDropNum" placeholder="Drop ej. 28" style="width:95px;" />
+              <select id="renderLayout" style="flex:1;">
                 <option value="classic">Classic</option>
                 <option value="dual_story">Dual Story</option>
               </select>
+              <button class="btn" id="btnRunRender3D">Render 3D</button>
             </div>
           </div>
           <label style="font-size:12px;display:flex;align-items:center;gap:6px;">
             <input type="checkbox" id="renderSendTg" /> Enviar resultado a Telegram
           </label>
-          <button class="btn btn-primary" id="btnRunRender3D">Lanzar Render 3D Real</button>
-          <div class="log-box" id="fitterLog">Listo para probar prendas reales (modo autónomo activo).</div>
+          <div class="log-box" id="fitterLog">Probador multicapa listo. Agrega varios diseños o arrastra directo sobre la prenda.</div>
         </div>
 
         <div class="stage-wrap">
           <div class="garment-stage" id="garmentStage">
             <img id="stageBaseImg" class="base-img" alt="Base prenda" />
-            <img id="stageArtImg" class="art-overlay" alt="Arte limpio" />
+            <div id="stageLayersContainer"></div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- MÓDULO 3: HISTORIAS (1080x1920) -->
+    <section id="tab-stories" class="module">
+      <div class="stories-layout">
+        <div class="panel-box">
+          <h3 style="margin:0;font-size:15px;">Creador de Historias (1080×1920)</h3>
+          <div class="control-row">
+            <label>Plantilla de Historia</label>
+            <select id="storyTemplate">
+              <option value="single_back">Historia Simple — Espalda</option>
+              <option value="single_front">Historia Simple — Frente</option>
+              <option value="dual_story">Historia Dual — Frente + Espalda (Lado a Lado)</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Fuente Principal (Composición Armada o Arte)</label>
+            <select id="storySourcePrimary"></select>
+          </div>
+          <div class="control-row" id="storySecondaryRow" style="display:none;">
+            <label>Fuente Secundaria (para lado derecho en Dual Story)</label>
+            <select id="storySourceSecondary"></select>
+          </div>
+          <div class="control-row">
+            <label>Aura / Color de Fondo OOO DARK</label>
+            <select id="storyAura">
+              <option value="#00e5a0">Verde Radar (#00e5a0)</option>
+              <option value="#ff3b5c">Rojo Carmesí (#ff3b5c)</option>
+              <option value="#4da3ff">Azul Cibernético (#4da3ff)</option>
+              <option value="#b45cff">Púrpura Neón (#b45cff)</option>
+              <option value="#ffb020">Ámbar Dorado (#ffb020)</option>
+              <option value="#6c768a">Carbón Acero (#6c768a)</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Título del Drop / Edición</label>
+            <input type="text" id="storyTitle" value="DROP 28 // ALDOUS HUXLEY" />
+          </div>
+          <div class="control-row">
+            <label>Subtítulo</label>
+            <input type="text" id="storySubtitle" value="OOO DARK EDITION · ALGODÓN 240G" />
+          </div>
+          <div class="control-row">
+            <label>Pie / Call to Action</label>
+            <input type="text" id="storyCta" value="DISPONIBLE EN CATÁLOGO #1 · ON RAD4R" />
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="btnStoryRender" style="flex:1;">Actualizar Vista</button>
+            <button class="btn btn-primary" id="btnStoryDlPng">Descargar PNG</button>
+            <button class="btn" id="btnStoryDlJpg">Descargar JPG</button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);width:100%;" />
+          <div class="control-row">
+            <label>Opcional: Despachar Render 3D Local (dual_story)</label>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="storyDropNum" placeholder="Drop ej. 28" style="width:100px;" />
+              <button class="btn" id="btnStoryDispatch3D" style="flex:1;">Despachar render_prendas_3d.py</button>
+            </div>
+          </div>
+          <div class="log-box" id="storyLog">Canvas 1080×1920 listo para exportar historias OOO DARK.</div>
+        </div>
+
+        <div class="story-canvas-wrap">
+          <canvas id="storyCanvas" width="1080" height="1920"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 4: CATÁLOGO #1 (APP 2) -->
+    <section id="tab-catalog1" class="module">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <strong style="font-size:15px;color:var(--accent);">Constructor Catálogo #1 (App 2)</strong>
+          <span class="pill">Prendas publicadas: <strong id="cat1Count">0</strong></span>
+        </div>
+        <div class="toolbar-group">
+          <button class="btn btn-primary" id="btnDownloadCatalog1">Descargar Primer Catálogo (catalogo_app2.json)</button>
+          <button class="btn btn-warn" id="btnSaveCatalogRepo">Guardar como Catálogo Base del Repo / Enviar a Radar</button>
+        </div>
+      </div>
+
+      <div class="panel-box" style="margin-bottom:16px;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
+          <div class="control-row" style="flex:2;min-width:220px;">
+            <label>Añadir Arte de Bóveda o Composición Multicapa al Catálogo #1</label>
+            <select id="cat1AddSelect"></select>
+          </div>
+          <button class="btn btn-primary" id="btnCat1Add">+ Añadir al Catálogo #1</button>
+          <button class="btn" id="btnCat1ResetDefaults">Restaurar Drops Base (#1)</button>
+        </div>
+        <div class="log-box" id="cat1Log" style="max-height:90px;">Catálogo #1 listo. Edita tarjetas, colores/tallas y descarga catalogo_app2.json en 1 clic.</div>
+      </div>
+
+      <div class="catalog-grid" id="catalog1Grid"></div>
+    </section>
+
+    <!-- MÓDULO 5: ARMADOR DTF -->
     <section id="tab-dtf" class="module">
       <div class="dtf-layout">
         <div class="panel-box">
@@ -294,9 +479,7 @@
           <hr style="border:none;border-top:1px solid var(--border);width:100%;" />
           <div class="control-row">
             <label>Métricas del Pliego</label>
-            <div id="dtfMetrics" class="pill" style="border-radius:8px;padding:8px 10px;">
-              Sin calcular aún.
-            </div>
+            <div id="dtfMetrics" class="pill" style="border-radius:8px;padding:8px 10px;">Sin calcular aún.</div>
           </div>
           <div class="log-box" id="dtfLog">Marca artes como "Listo Pliego DTF" en la Bóveda para armar el pliego.</div>
         </div>
@@ -318,6 +501,8 @@
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
+    const COMP_STORAGE_KEY = "onrad4r_estudio_compositions_v1";
+    const CAT1_STORAGE_KEY = "onrad4r_estudio_catalog1_v1";
     const LOCAL_API = "http://127.0.0.1:8787";
     const DPI = 300;
     const PX_PER_CM = DPI / 2.54;
@@ -325,29 +510,47 @@
     const DTF_WIDTH_PX = Math.round(DTF_WIDTH_CM * PX_PER_CM);
     const DTF_GAP_CM = 1.5;
     const DTF_GAP_PX = Math.round(DTF_GAP_CM * PX_PER_CM);
+    const AVAILABLE_COLORS = ["Negro", "Carbón", "Blanco", "Beige"];
+    const AVAILABLE_SIZES = ["S", "M", "L", "XL"];
 
     let INVENTORY = null;
     let LOCAL_ONLINE = false;
     let LAST_DTF_LAYOUT = null;
-    const $ = (id) => document.getElementById(id);
+    let SAVED_COMPOSITIONS = [];
+    let CATALOG1_ITEMS = [];
 
-    function pxToCm(px) { return Math.round((px / PX_PER_CM) * 100) / 100; }
-    function cmToPx(cm) { return Math.max(1, Math.round(cm * PX_PER_CM)); }
+    const fitterState = {
+      baseUrl: "",
+      layers: [],
+      activeUid: null,
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const pxToCm = (px) => Math.round((px / PX_PER_CM) * 100) / 100;
+    const cmToPx = (cm) => Math.max(1, Math.round(cm * PX_PER_CM));
+    const escHtml = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const uid = () => "lyr_" + Math.random().toString(36).slice(2, 9);
+
+    function loadJsonStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return fallback;
+    }
+
+    function saveJsonStorage(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
 
     function loadLocalState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === "object" && parsed.items) return parsed;
-        }
-      } catch (_) {}
-      return { updated_at: null, items: {} };
+      const parsed = loadJsonStorage(STORAGE_KEY, null);
+      return (parsed && typeof parsed === "object" && parsed.items) ? parsed : { updated_at: null, items: {} };
     }
 
     function saveLocalState(itemsMap) {
       const state = { updated_at: new Date().toISOString().slice(0, 19), items: itemsMap };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      saveJsonStorage(STORAGE_KEY, state);
       return state;
     }
 
@@ -369,39 +572,36 @@
       try {
         const r = await fetch(`${LOCAL_API}/api/inventory`, { signal: controller.signal });
         clearTimeout(timer);
-        if (r.ok) {
-          LOCAL_ONLINE = true;
-          return await r.json();
-        }
-      } catch (_) {
-        clearTimeout(timer);
-      }
+        if (r.ok) { LOCAL_ONLINE = true; return await r.json(); }
+      } catch (_) { clearTimeout(timer); }
       LOCAL_ONLINE = false;
       return null;
     }
 
-    // Tabs
+    // Navegación por pestañas
+    function switchTab(tabName) {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tabName));
+      document.querySelectorAll(".module").forEach((m) => m.classList.toggle("active", m.id === "tab-" + tabName));
+      if (tabName === "dtf") { renderDtfPieces(); computeDtfPreview(); }
+      if (tabName === "stories") { populateStorySources(); renderStoryCanvas(); }
+      if (tabName === "catalog1") { populateCat1AddSelect(); renderCatalog1(); }
+    }
+
     document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-        document.querySelectorAll(".module").forEach((m) => m.classList.remove("active"));
-        btn.classList.add("active");
-        $("tab-" + btn.dataset.tab).classList.add("active");
-        if (btn.dataset.tab === "dtf") {
-          renderDtfPieces();
-          computeDtfPreview();
-        }
-      });
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
     });
+    $("btnGoCatalog1").addEventListener("click", () => switchTab("catalog1"));
+
+    function allDesigns() {
+      return [...(INVENTORY?.artes || []), ...(INVENTORY?.logos || [])];
+    }
 
     function applyStateToInventory(inv) {
       const saved = loadLocalState();
       const savedItems = saved.items || {};
       const stateToPersist = {};
       [...(inv.artes || []), ...(inv.logos || [])].forEach((d) => {
-        if (savedItems[d.id]) {
-          Object.assign(d, savedItems[d.id]);
-        }
+        if (savedItems[d.id]) Object.assign(d, savedItems[d.id]);
         stateToPersist[d.id] = {
           status: d.status,
           enabled_app2: !!d.enabled_app2,
@@ -409,9 +609,7 @@
           dtf_width_cm: Number(d.dtf_width_cm) || 30,
         };
       });
-      if (!Object.keys(savedItems).length) {
-        saveLocalState(stateToPersist);
-      }
+      if (!Object.keys(savedItems).length) saveLocalState(stateToPersist);
       recomputeCounts(inv);
     }
 
@@ -427,17 +625,6 @@
       };
     }
 
-    async function loadInventory() {
-      const res = await fetch("./inventario.json");
-      INVENTORY = await res.json();
-      await checkLocalServer();
-      applyStateToInventory(INVENTORY);
-      updateStatsBar();
-      renderVault();
-      populateFitterSelects();
-      renderDtfPieces();
-    }
-
     function updateStatsBar() {
       const c = INVENTORY.counts;
       const modePill = LOCAL_ONLINE
@@ -447,14 +634,29 @@
         ${modePill}
         <span class="pill">Artes: <strong>${c.total_artes}</strong></span>
         <span class="pill">Logos: <strong>${c.total_logos}</strong></span>
-        <span class="pill">Bases: <strong>${c.total_bases}</strong></span>
-        <span class="pill">App 2: <strong>${c.app2_enabled}</strong></span>
-        <span class="pill">DTF Listos: <strong>${c.dtf_ready}</strong></span>
+        <span class="pill">Catálogo #1: <strong>${CATALOG1_ITEMS.length}</strong></span>
+        <span class="pill">Composiciones: <strong>${SAVED_COMPOSITIONS.length}</strong></span>
+        <span class="pill">DTF: <strong>${c.dtf_ready}</strong></span>
       `;
     }
 
-    function allDesigns() {
-      return [...(INVENTORY?.artes || []), ...(INVENTORY?.logos || [])];
+    async function loadInventory() {
+      const res = await fetch("./inventario.json");
+      INVENTORY = await res.json();
+      await checkLocalServer();
+      applyStateToInventory(INVENTORY);
+
+      SAVED_COMPOSITIONS = loadJsonStorage(COMP_STORAGE_KEY, []);
+      await initCatalog1();
+
+      updateStatsBar();
+      renderVault();
+      populateFitterSelects();
+      renderSavedCompositions();
+      renderDtfPieces();
+      populateStorySources();
+      populateCat1AddSelect();
+      renderCatalog1();
     }
 
     function persistCurrentDesign(d) {
@@ -470,6 +672,7 @@
       updateStatsBar();
     }
 
+    // ==================== MÓDULO 1: BÓVEDA ====================
     function renderVault() {
       const q = $("vaultSearch").value.trim().toLowerCase();
       const stFilter = $("vaultStatusFilter").value;
@@ -488,12 +691,12 @@
         card.className = "card";
         card.innerHTML = `
           <div class="card-thumb">
-            <span class="badge-drop">${d.drop}</span>
-            <span class="badge-cat">${d.category}</span>
-            <img src="${d.url}" loading="lazy" alt="${d.title}" />
+            <span class="badge-drop">${escHtml(d.drop)}</span>
+            <span class="badge-cat">${escHtml(d.category)}</span>
+            <img src="${d.url}" loading="lazy" alt="${escHtml(d.title)}" />
           </div>
           <div class="card-body">
-            <h4 class="card-title">${d.title}</h4>
+            <h4 class="card-title">${escHtml(d.title)}</h4>
             <div class="meta-row">
               <span>${d.width_cm} × ${d.height_cm} cm</span>
               <span>${d.width_px} × ${d.height_px} px @ 300 DPI</span>
@@ -507,12 +710,12 @@
               <input type="number" class="dtf-w-inp" step="0.5" min="3" max="54" value="${d.dtf_width_cm}" title="Ancho DTF en cm" style="width:74px;" />
             </div>
             <label class="switch-row">
-              <span>Habilitar en App 2 Pública</span>
+              <span>Habilitar en Catálogo #1</span>
               <input type="checkbox" class="app2-chk" ${d.enabled_app2 ? "checked" : ""} />
             </label>
-            <input type="text" class="notes-inp" placeholder="Notas de curaduría..." value="${(d.notes || "").replace(/"/g, "&quot;")}" />
+            <input type="text" class="notes-inp" placeholder="Notas de curaduría..." value="${escHtml(d.notes || "")}" />
             <div class="card-actions">
-              <button class="btn btn-try">Probar en Prenda</button>
+              <button class="btn btn-try">Probar Multicapa</button>
               <button class="btn btn-primary btn-save">Guardar</button>
             </div>
           </div>
@@ -528,7 +731,6 @@
           };
           Object.assign(d, payload);
           persistCurrentDesign(d);
-
           if (LOCAL_ONLINE) {
             fetch(`${LOCAL_API}/api/catalog/state`, {
               method: "POST",
@@ -543,9 +745,9 @@
         card.querySelector(".app2-chk").addEventListener("change", saveItem);
         card.querySelector(".btn-try").addEventListener("click", () => {
           $("fitterArtSelect").value = d.id;
-          updateFitterStage();
+          addLayerFromDesign(d, true);
           if (d.drop_num) $("renderDropNum").value = d.drop_num;
-          document.querySelector('[data-tab="fitter"]').click();
+          switchTab("fitter");
         });
         grid.appendChild(card);
       });
@@ -556,49 +758,6 @@
     $("vaultSourceFilter").addEventListener("change", renderVault);
     $("btnReloadInv").addEventListener("click", loadInventory);
 
-    function buildCatalogApp2() {
-      const approved = allDesigns()
-        .filter((item) => item.enabled_app2)
-        .map((item) => ({
-          id: item.id,
-          title: item.title,
-          drop: item.drop,
-          drop_num: item.drop_num,
-          category: item.category,
-          source: item.source,
-          filename: item.filename,
-          width_px: item.width_px,
-          height_px: item.height_px,
-          width_cm: item.width_cm,
-          height_cm: item.height_cm,
-          dpi: DPI,
-          status: item.status,
-          notes: item.notes,
-          dtf_width_cm: item.dtf_width_cm,
-          promo_render: item.promo_render || null,
-        }));
-      return {
-        brand: "ON RAD4R",
-        aesthetic: "OOO DARK",
-        generated_at: new Date().toISOString().slice(0, 19),
-        total_items: approved.length,
-        items: approved,
-      };
-    }
-
-    $("btnExportApp2").addEventListener("click", async () => {
-      const catalog = buildCatalogApp2();
-      downloadText("catalogo_app2.json", JSON.stringify(catalog, null, 2));
-      if (LOCAL_ONLINE) {
-        fetch(`${LOCAL_API}/api/catalog/export`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: "{}",
-        }).catch(() => {});
-      }
-      alert(`Exportado catalogo_app2.json con ${catalog.total_items} diseños aprobados.`);
-    });
-
     $("btnImportApp2").addEventListener("click", () => $("importFileInput").click());
     $("importFileInput").addEventListener("change", async (e) => {
       const file = e.target.files?.[0];
@@ -608,6 +767,8 @@
         const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
         let importedCount = 0;
         if (Array.isArray(data.items)) {
+          CATALOG1_ITEMS = data.items.map(normalizeCatalogItem);
+          saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
           data.items.forEach((it) => {
             if (it.id && byId[it.id]) {
               byId[it.id].status = it.status || "Aprobado Catálogo";
@@ -615,8 +776,8 @@
               if (it.notes !== undefined) byId[it.id].notes = it.notes;
               if (it.dtf_width_cm) byId[it.id].dtf_width_cm = Number(it.dtf_width_cm);
               persistCurrentDesign(byId[it.id]);
-              importedCount++;
             }
+            importedCount++;
           });
         } else if (data.items && typeof data.items === "object") {
           Object.entries(data.items).forEach(([id, st]) => {
@@ -629,7 +790,9 @@
         }
         renderVault();
         renderDtfPieces();
-        alert(`Importados ${importedCount} diseños al estudio local.`);
+        renderCatalog1();
+        updateStatsBar();
+        alert(`Importados ${importedCount} elementos al estudio local.`);
       } catch (err) {
         alert("JSON inválido: " + err.message);
       } finally {
@@ -637,7 +800,7 @@
       }
     });
 
-    // Módulo 2: Probador
+    // ==================== MÓDULO 2: PROBADOR MULTICAPA ====================
     function populateFitterSelects() {
       const baseSel = $("fitterBaseSelect");
       const artSel = $("fitterArtSelect");
@@ -645,97 +808,806 @@
       const prevArt = artSel.value;
 
       baseSel.innerHTML = INVENTORY.bases
-        .map((b) => `<option value="${b.url}">${b.label} (${b.fabric})</option>`)
+        .map((b) => `<option value="${b.url}">${escHtml(b.label)} (${escHtml(b.fabric)})</option>`)
         .join("");
       artSel.innerHTML = allDesigns()
-        .map((d) => `<option value="${d.id}">${d.drop} — ${d.title} (${d.width_cm}×${d.height_cm} cm)</option>`)
+        .map((d) => `<option value="${d.id}">${escHtml(d.drop)} — ${escHtml(d.title)} (${d.category})</option>`)
         .join("");
 
       if (prevBase) baseSel.value = prevBase;
       if (prevArt) artSel.value = prevArt;
-      updateFitterStage();
+      fitterState.baseUrl = baseSel.value || (INVENTORY.bases[0]?.url || "");
+
+      if (!fitterState.layers.length && allDesigns().length) {
+        const first = allDesigns().find((d) => d.id === artSel.value) || allDesigns()[0];
+        addLayerFromDesign(first, false);
+      } else {
+        renderFitterStage();
+      }
     }
 
-    function updateFitterStage() {
-      $("stageBaseImg").src = $("fitterBaseSelect").value || "";
-      const artId = $("fitterArtSelect").value;
-      const art = allDesigns().find((d) => d.id === artId);
-      const artImg = $("stageArtImg");
-      if (art) {
-        artImg.src = art.url;
-        if (art.drop_num) $("renderDropNum").value = art.drop_num;
-      }
-      const scale = $("fitterScale").value;
-      const x = $("fitterX").value;
-      const y = $("fitterY").value;
-      const op = $("fitterOpacity").value;
-      $("lblScale").textContent = scale + "%";
-      $("lblPosX").textContent = x + "%";
-      $("lblPosY").textContent = y + "%";
-      $("lblOpacity").textContent = op + "%";
-      artImg.style.left = x + "%";
-      artImg.style.top = y + "%";
-      artImg.style.maxWidth = scale + "%";
-      artImg.style.opacity = (op / 100).toFixed(2);
+    function defaultCoordsForCategory(cat) {
+      if (cat === "pecho" || cat === "logo") return { x: 61, y: 36, scale: 16 };
+      if (cat === "front") return { x: 50, y: 40, scale: 34 };
+      if (cat === "hem") return { x: 35, y: 74, scale: 14 };
+      return { x: 50, y: 46, scale: 46 };
     }
 
-    window.applyFitterPreset = (preset) => {
-      if (preset === "espalda") {
-        $("fitterScale").value = 46; $("fitterX").value = 50; $("fitterY").value = 48;
-      } else if (preset === "frente") {
-        $("fitterScale").value = 34; $("fitterX").value = 50; $("fitterY").value = 42;
-      } else if (preset === "pecho") {
-        $("fitterScale").value = 16; $("fitterX").value = 60; $("fitterY").value = 36;
+    function addLayerFromDesign(d, resetIfSingle = false) {
+      if (!d) return;
+      const coords = defaultCoordsForCategory(d.category);
+      const layer = {
+        uid: uid(),
+        artId: d.id,
+        title: d.title,
+        drop: d.drop,
+        drop_num: d.drop_num || "",
+        url: d.url,
+        x: coords.x,
+        y: coords.y,
+        scale: coords.scale,
+        opacity: 95,
+      };
+      if (resetIfSingle && fitterState.layers.length <= 1) {
+        fitterState.layers = [layer];
+      } else {
+        fitterState.layers.push(layer);
       }
-      updateFitterStage();
-    };
+      fitterState.activeUid = layer.uid;
+      if (d.drop_num) $("renderDropNum").value = d.drop_num;
+      if (!$("compNameInput").value.trim()) {
+        $("compNameInput").value = `${d.drop} — ${d.title}`;
+      }
+      renderFitterStage();
+    }
 
-    ["fitterBaseSelect", "fitterArtSelect", "fitterScale", "fitterX", "fitterY", "fitterOpacity"].forEach((id) => {
-      $(id).addEventListener("input", updateFitterStage);
-    });
+    function getActiveLayer() {
+      return fitterState.layers.find((l) => l.uid === fitterState.activeUid) || null;
+    }
 
-    // Drag mouse + touch en visor
-    let dragging = false;
-    const moveStageTo = (clientX, clientY) => {
-      const rect = $("garmentStage").getBoundingClientRect();
-      const px = Math.max(15, Math.min(85, Math.round(((clientX - rect.left) / rect.width) * 100)));
-      const py = Math.max(18, Math.min(82, Math.round(((clientY - rect.top) / rect.height) * 100)));
-      $("fitterX").value = px;
-      $("fitterY").value = py;
-      updateFitterStage();
-    };
-    $("stageArtImg").addEventListener("mousedown", (e) => { dragging = true; e.preventDefault(); });
-    window.addEventListener("mouseup", () => { dragging = false; });
-    $("garmentStage").addEventListener("mousemove", (e) => { if (dragging) moveStageTo(e.clientX, e.clientY); });
-    $("stageArtImg").addEventListener("touchstart", (e) => { dragging = true; e.preventDefault(); }, { passive: false });
-    window.addEventListener("touchend", () => { dragging = false; });
-    $("garmentStage").addEventListener("touchmove", (e) => {
-      if (!dragging || !e.touches[0]) return;
-      moveStageTo(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: false });
-
-    $("btnRunRender3D").addEventListener("click", async () => {
-      const drop_num = $("renderDropNum").value.trim();
-      if (!drop_num) { $("fitterLog").textContent = "Ingresa un número de Drop (ej. 26)."; return; }
-      if (!LOCAL_ONLINE) {
-        $("fitterLog").textContent = "Servidor local (127.0.0.1:8787) no detectado. Usa el Probador Real interactivo en esta PWA o inicia servidor_estudio.py en tu PC para render 3D.";
+    function syncSlidersToActiveLayer() {
+      const active = getActiveLayer();
+      const box = $("activeLayerControls");
+      if (!active) {
+        $("activeLayerTitle").textContent = "Sin capa seleccionada";
+        box.style.opacity = "0.5";
         return;
       }
-      $("fitterLog").textContent = "Ejecutando render_prendas_3d.py síncronamente...";
+      box.style.opacity = "1";
+      $("activeLayerTitle").textContent = `Capa: ${active.drop} · ${active.title}`;
+      $("fitterScale").value = active.scale;
+      $("fitterX").value = active.x;
+      $("fitterY").value = active.y;
+      $("fitterOpacity").value = active.opacity;
+      $("lblScale").textContent = active.scale + "%";
+      $("lblPosX").textContent = active.x + "%";
+      $("lblPosY").textContent = active.y + "%";
+      $("lblOpacity").textContent = active.opacity + "%";
+    }
+
+    function renderLayersList() {
+      $("layersCount").textContent = fitterState.layers.length;
+      const list = $("layersList");
+      if (!fitterState.layers.length) {
+        list.innerHTML = `<div style="font-size:12px;color:var(--muted);">Sin capas. Usa "+ Agregar diseño".</div>`;
+        return;
+      }
+      list.innerHTML = "";
+      fitterState.layers.forEach((l, idx) => {
+        const row = document.createElement("div");
+        row.className = "layer-item" + (l.uid === fitterState.activeUid ? " active" : "");
+        row.innerHTML = `
+          <img src="${l.url}" alt="${escHtml(l.title)}" />
+          <div class="layer-item-info">
+            <strong>#${idx + 1} ${escHtml(l.title)}</strong>
+            <span>${escHtml(l.drop)} · ${l.scale}% · (${l.x}%, ${l.y}%)</span>
+          </div>
+          <div class="layer-actions">
+            <button class="btn btn-sm act-up" title="Subir capa">↑</button>
+            <button class="btn btn-sm act-dn" title="Bajar capa">↓</button>
+            <button class="btn btn-sm act-dup" title="Duplicar">⧉</button>
+            <button class="btn btn-sm btn-danger act-del" title="Eliminar">✕</button>
+          </div>
+        `;
+        row.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          fitterState.activeUid = l.uid;
+          renderFitterStage();
+        });
+        row.querySelector(".act-up").addEventListener("click", () => {
+          if (idx < fitterState.layers.length - 1) {
+            [fitterState.layers[idx], fitterState.layers[idx + 1]] = [fitterState.layers[idx + 1], fitterState.layers[idx]];
+            renderFitterStage();
+          }
+        });
+        row.querySelector(".act-dn").addEventListener("click", () => {
+          if (idx > 0) {
+            [fitterState.layers[idx], fitterState.layers[idx - 1]] = [fitterState.layers[idx - 1], fitterState.layers[idx]];
+            renderFitterStage();
+          }
+        });
+        row.querySelector(".act-dup").addEventListener("click", () => {
+          const copy = { ...l, uid: uid(), x: Math.min(85, l.x + 5), y: Math.min(85, l.y + 5) };
+          fitterState.layers.splice(idx + 1, 0, copy);
+          fitterState.activeUid = copy.uid;
+          renderFitterStage();
+        });
+        row.querySelector(".act-del").addEventListener("click", () => {
+          fitterState.layers.splice(idx, 1);
+          if (fitterState.activeUid === l.uid) {
+            fitterState.activeUid = fitterState.layers[fitterState.layers.length - 1]?.uid || null;
+          }
+          renderFitterStage();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    function renderFitterStage() {
+      $("stageBaseImg").src = fitterState.baseUrl || "";
+      const container = $("stageLayersContainer");
+      container.innerHTML = "";
+      fitterState.layers.forEach((l, idx) => {
+        const img = document.createElement("img");
+        img.src = l.url;
+        img.alt = l.title;
+        img.dataset.uid = l.uid;
+        img.className = "art-layer" + (l.uid === fitterState.activeUid ? " active-layer" : "");
+        img.style.left = l.x + "%";
+        img.style.top = l.y + "%";
+        img.style.maxWidth = l.scale + "%";
+        img.style.opacity = (l.opacity / 100).toFixed(2);
+        img.style.zIndex = String(idx + 2);
+
+        const startDrag = (e) => {
+          fitterState.activeUid = l.uid;
+          draggingUid = l.uid;
+          renderLayersList();
+          syncSlidersToActiveLayer();
+          container.querySelectorAll("img.art-layer").forEach((el) => {
+            el.classList.toggle("active-layer", el.dataset.uid === l.uid);
+          });
+          e.preventDefault();
+        };
+        img.addEventListener("mousedown", startDrag);
+        img.addEventListener("touchstart", startDrag, { passive: false });
+        container.appendChild(img);
+      });
+      renderLayersList();
+      syncSlidersToActiveLayer();
+    }
+
+    $("fitterBaseSelect").addEventListener("change", () => {
+      fitterState.baseUrl = $("fitterBaseSelect").value;
+      renderFitterStage();
+    });
+
+    $("btnAddLayer").addEventListener("click", () => {
+      const d = allDesigns().find((x) => x.id === $("fitterArtSelect").value);
+      addLayerFromDesign(d, false);
+    });
+
+    ["fitterScale", "fitterX", "fitterY", "fitterOpacity"].forEach((id) => {
+      $(id).addEventListener("input", () => {
+        const active = getActiveLayer();
+        if (!active) return;
+        active.scale = Number($("fitterScale").value);
+        active.x = Number($("fitterX").value);
+        active.y = Number($("fitterY").value);
+        active.opacity = Number($("fitterOpacity").value);
+        renderFitterStage();
+      });
+    });
+
+    window.applyFitterPreset = (preset) => {
+      const active = getActiveLayer();
+      if (!active) return;
+      if (preset === "espalda") { active.scale = 46; active.x = 50; active.y = 48; }
+      else if (preset === "frente") { active.scale = 34; active.x = 50; active.y = 42; }
+      else if (preset === "pecho") { active.scale = 16; active.x = 61; active.y = 36; }
+      else if (preset === "costado") { active.scale = 18; active.x = 32; active.y = 66; }
+      renderFitterStage();
+    };
+
+    let draggingUid = null;
+    const moveActiveLayerTo = (clientX, clientY) => {
+      const active = fitterState.layers.find((l) => l.uid === draggingUid);
+      if (!active) return;
+      const rect = $("garmentStage").getBoundingClientRect();
+      active.x = Math.max(10, Math.min(90, Math.round(((clientX - rect.left) / rect.width) * 100)));
+      active.y = Math.max(12, Math.min(88, Math.round(((clientY - rect.top) / rect.height) * 100)));
+      const img = $("stageLayersContainer").querySelector(`img[data-uid="${active.uid}"]`);
+      if (img) { img.style.left = active.x + "%"; img.style.top = active.y + "%"; }
+      syncSlidersToActiveLayer();
+    };
+    window.addEventListener("mouseup", () => { if (draggingUid) { draggingUid = null; renderLayersList(); } });
+    window.addEventListener("touchend", () => { if (draggingUid) { draggingUid = null; renderLayersList(); } });
+    $("garmentStage").addEventListener("mousemove", (e) => { if (draggingUid) moveActiveLayerTo(e.clientX, e.clientY); });
+    $("garmentStage").addEventListener("touchmove", (e) => {
+      if (!draggingUid || !e.touches[0]) return;
+      moveActiveLayerTo(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    function loadImageSafe(src) {
+      return new Promise((resolve) => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
+
+    async function renderCompositionToCanvas(comp, width = 360, height = 640) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#0e1015";
+      ctx.fillRect(0, 0, width, height);
+
+      const baseImg = await loadImageSafe(comp.baseUrl);
+      if (baseImg) {
+        const scale = Math.max(width / baseImg.width, height / baseImg.height);
+        const dw = baseImg.width * scale;
+        const dh = baseImg.height * scale;
+        ctx.drawImage(baseImg, (width - dw) / 2, (height - dh) / 2, dw, dh);
+      }
+      for (const layer of (comp.layers || [])) {
+        const artImg = await loadImageSafe(layer.url);
+        if (!artImg) continue;
+        const maxW = width * (layer.scale / 100);
+        const ratio = artImg.height / artImg.width;
+        const dw = maxW;
+        const dh = dw * ratio;
+        const cx = width * (layer.x / 100);
+        const cy = height * (layer.y / 100);
+        ctx.save();
+        ctx.globalAlpha = (layer.opacity ?? 95) / 100;
+        ctx.drawImage(artImg, cx - dw / 2, cy - dh / 2, dw, dh);
+        ctx.restore();
+      }
+      return canvas.toDataURL("image/jpeg", 0.86);
+    }
+
+    $("btnSaveComposition").addEventListener("click", async () => {
+      if (!fitterState.layers.length) {
+        $("fitterLog").textContent = "Agrega al menos 1 diseño antes de guardar la composición.";
+        return;
+      }
+      const baseOpt = $("fitterBaseSelect").selectedOptions[0];
+      const name = $("compNameInput").value.trim() || `Prenda Armada (${fitterState.layers.length} capas)`;
+      const comp = {
+        id: "comp_" + Date.now(),
+        name,
+        baseUrl: fitterState.baseUrl,
+        baseLabel: baseOpt ? baseOpt.textContent : "Base Camiseta",
+        layers: fitterState.layers.map((l) => ({ ...l })),
+        created_at: new Date().toISOString().slice(0, 19),
+      };
+      comp.previewDataUrl = await renderCompositionToCanvas(comp, 270, 480);
+      SAVED_COMPOSITIONS.unshift(comp);
+      saveJsonStorage(COMP_STORAGE_KEY, SAVED_COMPOSITIONS);
+      renderSavedCompositions();
+      populateStorySources();
+      populateCat1AddSelect();
+      updateStatsBar();
+      $("fitterLog").textContent = `Composición "${name}" guardada (${comp.layers.length} capas). Ya disponible en Historias y Catálogo #1.`;
+    });
+
+    function renderSavedCompositions() {
+      $("savedCompCount").textContent = SAVED_COMPOSITIONS.length;
+      const list = $("savedCompList");
+      if (!SAVED_COMPOSITIONS.length) {
+        list.innerHTML = `<div style="font-size:12px;color:var(--muted);">Aún no hay prendas armadas guardadas.</div>`;
+        return;
+      }
+      list.innerHTML = "";
+      SAVED_COMPOSITIONS.forEach((c, idx) => {
+        const div = document.createElement("div");
+        div.className = "comp-item";
+        div.innerHTML = `
+          <img src="${c.previewDataUrl || c.baseUrl}" alt="${escHtml(c.name)}" />
+          <div style="flex:1;min-width:0;">
+            <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</strong>
+            <span style="color:var(--muted);font-size:11px;">${c.layers.length} capas · ${c.created_at.slice(0, 10)}</span>
+          </div>
+          <button class="btn btn-sm act-load" title="Cargar en Probador">Cargar</button>
+          <button class="btn btn-sm act-story" title="Enviar a Historias">Historia</button>
+          <button class="btn btn-sm btn-primary act-cat1" title="Enviar a Catálogo #1">+Cat1</button>
+          <button class="btn btn-sm btn-danger act-del" title="Borrar">✕</button>
+        `;
+        div.querySelector(".act-load").addEventListener("click", () => {
+          fitterState.baseUrl = c.baseUrl;
+          $("fitterBaseSelect").value = c.baseUrl;
+          fitterState.layers = c.layers.map((l) => ({ ...l, uid: uid() }));
+          fitterState.activeUid = fitterState.layers[0]?.uid || null;
+          $("compNameInput").value = c.name;
+          renderFitterStage();
+        });
+        div.querySelector(".act-story").addEventListener("click", () => {
+          switchTab("stories");
+          $("storySourcePrimary").value = "comp:" + c.id;
+          $("storyTitle").value = c.name.toUpperCase();
+          renderStoryCanvas();
+        });
+        div.querySelector(".act-cat1").addEventListener("click", () => {
+          addCompositionToCatalog1(c);
+          switchTab("catalog1");
+        });
+        div.querySelector(".act-del").addEventListener("click", () => {
+          SAVED_COMPOSITIONS.splice(idx, 1);
+          saveJsonStorage(COMP_STORAGE_KEY, SAVED_COMPOSITIONS);
+          renderSavedCompositions();
+          populateStorySources();
+          populateCat1AddSelect();
+          updateStatsBar();
+        });
+        list.appendChild(div);
+      });
+    }
+
+    async function runRemoteRender3D(drop_num, layout, send_telegram, logEl) {
+      if (!drop_num) { logEl.textContent = "Ingresa un número de Drop (ej. 28)."; return; }
+      if (!LOCAL_ONLINE) {
+        logEl.textContent = "Servidor local (127.0.0.1:8787) no detectado. Inicia servidor_estudio.py en tu PC para render_prendas_3d.py.";
+        return;
+      }
+      logEl.textContent = `Ejecutando render_prendas_3d.py --only ${drop_num} --layout ${layout}...`;
       const r = await fetch(`${LOCAL_API}/api/render3d`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          drop_num,
-          layout: $("renderLayout").value,
-          send_telegram: $("renderSendTg").checked,
-        }),
+        body: JSON.stringify({ drop_num, layout, send_telegram }),
       });
       const data = await r.json();
-      $("fitterLog").textContent = JSON.stringify(data, null, 2);
+      logEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    $("btnRunRender3D").addEventListener("click", () => {
+      runRemoteRender3D($("renderDropNum").value.trim(), $("renderLayout").value, $("renderSendTg").checked, $("fitterLog"));
     });
 
-    // Módulo 3: DTF autónomo (Shelf / Guillotine @ 300 DPI)
+    // ==================== MÓDULO 3: HISTORIAS (1080x1920) ====================
+    function populateStorySources() {
+      const optionsHtml = [
+        SAVED_COMPOSITIONS.length
+          ? `<optgroup label="Composiciones Multicapa Armadas">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${c.layers.length} capas)</option>`).join("")}</optgroup>`
+          : "",
+        `<optgroup label="Artes / Diseños Individuales">${allDesigns().map((d) => `<option value="art:${d.id}">${escHtml(d.drop)} — ${escHtml(d.title)}</option>`).join("")}</optgroup>`
+      ].join("");
+
+      const pSel = $("storySourcePrimary");
+      const sSel = $("storySourceSecondary");
+      const prevP = pSel.value;
+      const prevS = sSel.value;
+      pSel.innerHTML = optionsHtml;
+      sSel.innerHTML = optionsHtml;
+      if (prevP) pSel.value = prevP;
+      if (prevS) sSel.value = prevS;
+      else if (sSel.options.length > 1) sSel.selectedIndex = 1;
+    }
+
+    function resolveStoryGarment(sourceVal, defaultView) {
+      if (sourceVal && sourceVal.startsWith("comp:")) {
+        const comp = SAVED_COMPOSITIONS.find((c) => c.id === sourceVal.slice(5));
+        if (comp) return { baseUrl: comp.baseUrl, layers: comp.layers, drop_num: comp.layers[0]?.drop_num || "" };
+      }
+      const artId = sourceVal && sourceVal.startsWith("art:") ? sourceVal.slice(4) : sourceVal;
+      const art = allDesigns().find((d) => d.id === artId) || allDesigns()[0];
+      const base = INVENTORY.bases.find((b) => b.view === defaultView) || INVENTORY.bases[0];
+      const coords = defaultCoordsForCategory(art?.category || "arte");
+      return {
+        baseUrl: base?.url || "",
+        drop_num: art?.drop_num || "",
+        layers: art ? [{ url: art.url, x: coords.x, y: coords.y, scale: coords.scale, opacity: 96 }] : [],
+      };
+    }
+
+    async function drawGarmentOnStoryCtx(ctx, garment, boxX, boxY, boxW, boxH, label) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 28);
+      ctx.clip();
+      ctx.fillStyle = "#0e1015";
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+
+      const baseImg = await loadImageSafe(garment.baseUrl);
+      if (baseImg) {
+        const sc = Math.max(boxW / baseImg.width, boxH / baseImg.height);
+        const dw = baseImg.width * sc;
+        const dh = baseImg.height * sc;
+        ctx.drawImage(baseImg, boxX + (boxW - dw) / 2, boxY + (boxH - dh) / 2, dw, dh);
+      }
+      for (const layer of garment.layers) {
+        const artImg = await loadImageSafe(layer.url);
+        if (!artImg) continue;
+        const dw = boxW * ((layer.scale || 46) / 100);
+        const dh = dw * (artImg.height / artImg.width);
+        const cx = boxX + boxW * ((layer.x || 50) / 100);
+        const cy = boxY + boxH * ((layer.y || 46) / 100);
+        ctx.save();
+        ctx.globalAlpha = (layer.opacity ?? 95) / 100;
+        ctx.shadowColor = "rgba(0,0,0,0.45)";
+        ctx.shadowBlur = 12;
+        ctx.drawImage(artImg, cx - dw / 2, cy - dh / 2, dw, dh);
+        ctx.restore();
+      }
+      ctx.restore();
+
+      ctx.strokeStyle = "rgba(255,255,255,0.14)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 28);
+      ctx.stroke();
+
+      if (label) {
+        ctx.fillStyle = "rgba(9,10,13,0.82)";
+        ctx.beginPath();
+        ctx.roundRect(boxX + 18, boxY + 18, 170, 44, 10);
+        ctx.fill();
+        ctx.fillStyle = "#eef1f6";
+        ctx.font = "700 22px Segoe UI, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, boxX + 103, boxY + 47);
+      }
+    }
+
+    async function renderStoryCanvas() {
+      const canvas = $("storyCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = 1080, H = 1920;
+      const tpl = $("storyTemplate").value;
+      const aura = $("storyAura").value;
+      const title = $("storyTitle").value.trim() || "ON RAD4R // DROP";
+      const subtitle = $("storySubtitle").value.trim() || "OOO DARK EDITION";
+      const cta = $("storyCta").value.trim() || "ON RAD4R STUDIO";
+
+      $("storySecondaryRow").style.display = tpl === "dual_story" ? "flex" : "none";
+
+      // Fondo OOO DARK + Aura
+      ctx.fillStyle = "#08090c";
+      ctx.fillRect(0, 0, W, H);
+      const grad = ctx.createRadialGradient(W / 2, H * 0.45, 60, W / 2, H * 0.45, 760);
+      grad.addColorStop(0, aura + "44");
+      grad.addColorStop(0.55, aura + "14");
+      grad.addColorStop(1, "rgba(8,9,12,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Grilla técnica sutil
+      ctx.strokeStyle = "rgba(255,255,255,0.035)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+      // Cabecera
+      ctx.fillStyle = aura;
+      ctx.font = "700 26px Consolas, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("ON RAD4R // OOO DARK STUDIO", W / 2, 115);
+
+      ctx.fillStyle = "#eef1f6";
+      ctx.font = "800 58px Segoe UI, sans-serif";
+      ctx.fillText(title.slice(0, 28), W / 2, 195);
+
+      ctx.fillStyle = "#9aa4b5";
+      ctx.font = "600 28px Segoe UI, sans-serif";
+      ctx.fillText(subtitle.slice(0, 44), W / 2, 248);
+
+      // Prendas
+      const g1 = resolveStoryGarment($("storySourcePrimary").value, tpl === "single_front" ? "frente" : "espalda");
+      if (g1.drop_num && !$("storyDropNum").value) $("storyDropNum").value = g1.drop_num;
+
+      if (tpl === "dual_story") {
+        const gFront = resolveStoryGarment($("storySourceSecondary").value, "frente");
+        await drawGarmentOnStoryCtx(ctx, gFront, 54, 330, 468, 1140, "FRENTE");
+        await drawGarmentOnStoryCtx(ctx, g1, 558, 330, 468, 1140, "ESPALDA");
+      } else {
+        const lbl = tpl === "single_front" ? "FRENTE" : "ESPALDA";
+        await drawGarmentOnStoryCtx(ctx, g1, 140, 315, 800, 1220, lbl);
+      }
+
+      // Footer / CTA
+      ctx.fillStyle = "rgba(17,19,25,0.92)";
+      ctx.beginPath();
+      ctx.roundRect(90, 1620, 900, 130, 22);
+      ctx.fill();
+      ctx.strokeStyle = aura;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = "#eef1f6";
+      ctx.font = "700 32px Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(cta.slice(0, 42), W / 2, 1696);
+
+      ctx.fillStyle = "#778296";
+      ctx.font = "600 22px Consolas, monospace";
+      ctx.fillText("TALLAS S · M · L · XL  |  DTF 300 DPI  |  @ONRAD4R", W / 2, 1825);
+    }
+
+    ["storyTemplate", "storySourcePrimary", "storySourceSecondary", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
+      $(id).addEventListener("input", renderStoryCanvas);
+      $(id).addEventListener("change", renderStoryCanvas);
+    });
+    $("btnStoryRender").addEventListener("click", renderStoryCanvas);
+
+    function downloadStoryCanvas(ext, mime) {
+      const canvas = $("storyCanvas");
+      const a = document.createElement("a");
+      a.download = `historia_onrad4r_1080x1920.${ext}`;
+      a.href = canvas.toDataURL(mime, 0.94);
+      a.click();
+      $("storyLog").textContent = `Descargada historia en 1080×1920 (.${ext}).`;
+    }
+    $("btnStoryDlPng").addEventListener("click", () => downloadStoryCanvas("png", "image/png"));
+    $("btnStoryDlJpg").addEventListener("click", () => downloadStoryCanvas("jpg", "image/jpeg"));
+    $("btnStoryDispatch3D").addEventListener("click", () => {
+      runRemoteRender3D($("storyDropNum").value.trim(), "dual_story", true, $("storyLog"));
+    });
+
+    // ==================== MÓDULO 4: CATÁLOGO #1 (APP 2) ====================
+    function normalizeCatalogItem(it) {
+      return {
+        id: it.id,
+        title: it.title || "Prenda ON RAD4R",
+        drop: it.drop || "Drop",
+        drop_num: it.drop_num || "",
+        category: it.category || "arte",
+        source: it.source || "artes_limpios",
+        filename: it.filename || "",
+        url: it.url || (it.filename ? `./assets/artes/${it.filename}` : ""),
+        width_px: it.width_px || 600,
+        height_px: it.height_px || 800,
+        width_cm: it.width_cm || 25,
+        height_cm: it.height_cm || 30,
+        dpi: DPI,
+        status: it.status || "Aprobado Catálogo",
+        notes: it.notes || "",
+        short_description: it.short_description || it.notes || "Camiseta oversize 240g estampado DTF alta definición ON RAD4R.",
+        colors: Array.isArray(it.colors) && it.colors.length ? it.colors : ["Negro", "Carbón"],
+        sizes: Array.isArray(it.sizes) && it.sizes.length ? it.sizes : ["S", "M", "L", "XL"],
+        dtf_width_cm: it.dtf_width_cm || 30,
+        promo_render: it.promo_render || null,
+        composition: it.composition || null,
+        previewDataUrl: it.previewDataUrl || null,
+      };
+    }
+
+    async function initCatalog1() {
+      const saved = loadJsonStorage(CAT1_STORAGE_KEY, null);
+      if (Array.isArray(saved) && saved.length) {
+        CATALOG1_ITEMS = saved.map(normalizeCatalogItem);
+        return;
+      }
+      await loadDefaultCatalog1FromRepo();
+    }
+
+    async function loadDefaultCatalog1FromRepo() {
+      try {
+        const res = await fetch("./catalogo_app2.json");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.items) && data.items.length) {
+            CATALOG1_ITEMS = data.items.map(normalizeCatalogItem);
+            saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+            return;
+          }
+        }
+      } catch (_) {}
+      // Fallback directo desde inventario.json
+      const fallbackIds = [
+        "artes/arte_28_aldous_huxley.png",
+        "artes/arte_27_koi_espalda.png",
+        "artes/arte_24_rei_ayanami.png",
+        "artes/arte_21_luffy_gear5.png",
+        "artes/arte_15_south_park_pop.png",
+      ];
+      const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
+      CATALOG1_ITEMS = fallbackIds.map((id) => byId[id]).filter(Boolean).map(normalizeCatalogItem);
+      saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+    }
+
+    function populateCat1AddSelect() {
+      const sel = $("cat1AddSelect");
+      const opts = [
+        SAVED_COMPOSITIONS.length
+          ? `<optgroup label="Composiciones Multicapa Guardadas">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${c.layers.length} capas)</option>`).join("")}</optgroup>`
+          : "",
+        `<optgroup label="Artes de Bóveda">${allDesigns().map((d) => `<option value="art:${d.id}">${escHtml(d.drop)} — ${escHtml(d.title)} (${escHtml(d.status)})</option>`).join("")}</optgroup>`
+      ].join("");
+      sel.innerHTML = opts;
+    }
+
+    function addCompositionToCatalog1(comp) {
+      const firstLayer = comp.layers[0] || {};
+      const item = normalizeCatalogItem({
+        id: comp.id,
+        title: comp.name,
+        drop: firstLayer.drop || "Custom",
+        drop_num: firstLayer.drop_num || "",
+        category: "composicion_multicapa",
+        source: "probador_multicapa",
+        filename: comp.id + ".json",
+        url: comp.baseUrl,
+        status: "Aprobado Catálogo",
+        short_description: `Composición multicapa (${comp.layers.length} diseños) sobre ${comp.baseLabel}.`,
+        composition: { baseUrl: comp.baseUrl, baseLabel: comp.baseLabel, layers: comp.layers },
+        previewDataUrl: comp.previewDataUrl || null,
+      });
+      CATALOG1_ITEMS.unshift(item);
+      saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+      renderCatalog1();
+      updateStatsBar();
+      $("cat1Log").textContent = `Añadida composición "${comp.name}" al Catálogo #1.`;
+    }
+
+    $("btnCat1Add").addEventListener("click", () => {
+      const val = $("cat1AddSelect").value;
+      if (!val) return;
+      if (val.startsWith("comp:")) {
+        const comp = SAVED_COMPOSITIONS.find((c) => c.id === val.slice(5));
+        if (comp) addCompositionToCatalog1(comp);
+      } else if (val.startsWith("art:")) {
+        const art = allDesigns().find((d) => d.id === val.slice(4));
+        if (!art) return;
+        if (CATALOG1_ITEMS.some((x) => x.id === art.id)) {
+          $("cat1Log").textContent = `"${art.title}" ya está en el Catálogo #1.`;
+          return;
+        }
+        CATALOG1_ITEMS.unshift(normalizeCatalogItem({ ...art, status: "Aprobado Catálogo" }));
+        saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+        renderCatalog1();
+        updateStatsBar();
+        $("cat1Log").textContent = `Añadido "${art.drop} — ${art.title}" al Catálogo #1.`;
+      }
+    });
+
+    $("btnCat1ResetDefaults").addEventListener("click", async () => {
+      localStorage.removeItem(CAT1_STORAGE_KEY);
+      await loadDefaultCatalog1FromRepo();
+      renderCatalog1();
+      updateStatsBar();
+      $("cat1Log").textContent = "Catálogo #1 restaurado con los 5 Drops base iniciales.";
+    });
+
+    function renderCatalog1() {
+      $("cat1Count").textContent = CATALOG1_ITEMS.length;
+      const grid = $("catalog1Grid");
+      grid.innerHTML = "";
+      if (!CATALOG1_ITEMS.length) {
+        grid.innerHTML = `<div class="panel-box" style="grid-column:1/-1;color:var(--muted);">No hay prendas en Catálogo #1. Añade un arte o restaura los Drops base.</div>`;
+        return;
+      }
+      CATALOG1_ITEMS.forEach((it, idx) => {
+        const card = document.createElement("div");
+        card.className = "cat-card";
+        const thumbSrc = it.previewDataUrl || it.url;
+        card.innerHTML = `
+          <div class="cat-card-head">
+            <div class="cat-card-thumb">
+              <img src="${thumbSrc}" alt="${escHtml(it.title)}" />
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;">
+                <span class="pill" style="font-size:11px;padding:2px 8px;"><strong>${escHtml(it.drop)}</strong></span>
+                <button class="btn btn-sm btn-danger btn-remove">Quitar</button>
+              </div>
+              <input type="text" class="cat-title-inp" value="${escHtml(it.title)}" style="width:100%;font-weight:700;" />
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                ${it.composition ? `Multicapa (${it.composition.layers.length} diseños)` : `${it.width_cm}×${it.height_cm} cm · DTF ${it.dtf_width_cm} cm`}
+              </div>
+            </div>
+          </div>
+          <div class="cat-card-body">
+            <div class="control-row">
+              <label>Descripción corta en tienda</label>
+              <textarea rows="2" class="cat-desc-inp" style="width:100%;resize:vertical;">${escHtml(it.short_description)}</textarea>
+            </div>
+            <div class="control-row">
+              <label>Colores de camiseta disponibles</label>
+              <div class="chip-group colors-group">
+                ${AVAILABLE_COLORS.map((col) => `<span class="chip ${it.colors.includes(col) ? "selected" : ""}" data-val="${col}">${col}</span>`).join("")}
+              </div>
+            </div>
+            <div class="control-row">
+              <label>Tallas disponibles</label>
+              <div class="chip-group sizes-group">
+                ${AVAILABLE_SIZES.map((sz) => `<span class="chip ${it.sizes.includes(sz) ? "selected" : ""}" data-val="${sz}">${sz}</span>`).join("")}
+              </div>
+            </div>
+          </div>
+        `;
+
+        const persist = () => saveJsonStorage(CAT1_STORAGE_KEY, CATALOG1_ITEMS);
+
+        card.querySelector(".cat-title-inp").addEventListener("input", (e) => { it.title = e.target.value; persist(); });
+        card.querySelector(".cat-desc-inp").addEventListener("input", (e) => { it.short_description = e.target.value; persist(); });
+        card.querySelectorAll(".colors-group .chip").forEach((ch) => {
+          ch.addEventListener("click", () => {
+            const val = ch.dataset.val;
+            it.colors = it.colors.includes(val) ? it.colors.filter((x) => x !== val) : [...it.colors, val];
+            if (!it.colors.length) it.colors = [val];
+            ch.classList.toggle("selected", it.colors.includes(val));
+            persist();
+          });
+        });
+        card.querySelectorAll(".sizes-group .chip").forEach((ch) => {
+          ch.addEventListener("click", () => {
+            const val = ch.dataset.val;
+            it.sizes = it.sizes.includes(val) ? it.sizes.filter((x) => x !== val) : [...it.sizes, val];
+            if (!it.sizes.length) it.sizes = [val];
+            ch.classList.toggle("selected", it.sizes.includes(val));
+            persist();
+          });
+        });
+        card.querySelector(".btn-remove").addEventListener("click", () => {
+          CATALOG1_ITEMS.splice(idx, 1);
+          persist();
+          renderCatalog1();
+          updateStatsBar();
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function buildValidatedCatalog1() {
+      const cleanItems = CATALOG1_ITEMS.map((it) => {
+        const copy = { ...it };
+        delete copy.previewDataUrl; // mantener JSON liviano y limpio
+        return copy;
+      });
+      return {
+        brand: "ON RAD4R",
+        aesthetic: "OOO DARK",
+        catalog_name: "Catálogo #1 — Drops Oficiales",
+        generated_at: new Date().toISOString().slice(0, 19),
+        total_items: cleanItems.length,
+        items: cleanItems,
+      };
+    }
+
+    $("btnDownloadCatalog1").addEventListener("click", () => {
+      const catalog = buildValidatedCatalog1();
+      if (!catalog.total_items) {
+        $("cat1Log").textContent = "Agrega al menos 1 prenda al Catálogo #1 antes de descargar.";
+        return;
+      }
+      downloadText("catalogo_app2.json", JSON.stringify(catalog, null, 2));
+      $("cat1Log").textContent = `Descargado catalogo_app2.json válido con ${catalog.total_items} prendas listas para App 2.`;
+    });
+
+    $("btnSaveCatalogRepo").addEventListener("click", async () => {
+      const catalog = buildValidatedCatalog1();
+      if (LOCAL_ONLINE) {
+        try {
+          const r = await fetch(`${LOCAL_API}/api/catalog/export`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(catalog),
+          });
+          if (r.ok) {
+            $("cat1Log").textContent = `Catálogo #1 guardado en el repositorio local vía 127.0.0.1:8787 (${catalog.total_items} prendas).`;
+            return;
+          }
+        } catch (_) {}
+      }
+      const missionTxt = [
+        "MISIÓN: Actualizar Catálogo #1 (catalogo_app2.json) en ON RAD4R",
+        `FECHA: ${new Date().toISOString()}`,
+        `TOTAL_PRENDAS: ${catalog.total_items}`,
+        "",
+        "INSTRUCCIÓN: Reemplazar catalogo_app2.json en onrad4r-estudio-catalogo/ y tienda_ropa/app_estudio/ con el JSON adjunto y hacer push.",
+        "",
+        "--- JSON catalogo_app2.json ---",
+        JSON.stringify(catalog, null, 2),
+      ].join("\n");
+      downloadText("mision_actualizar_catalogo_app2.txt", missionTxt, "text/plain;charset=utf-8");
+      $("cat1Log").textContent = "Modo autónomo: descargada misión mision_actualizar_catalogo_app2.txt lista para enviar a Radar.";
+    });
+
+    // ==================== MÓDULO 5: ARMADOR DTF ====================
     function packDtfPiecesLocal(pieces) {
       const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
       const resolved = pieces.map((req, idx) => {
@@ -752,14 +1624,11 @@
         }
         return { seq: idx + 1, id: d.id, filename: d.filename, title: d.title, w_px, h_px, rotated };
       });
-
       resolved.sort((a, b) => (b.h_px - a.h_px) || (b.w_px - a.w_px));
 
       const placed = [];
       const margin = DTF_GAP_PX;
-      let cursorX = margin;
-      let cursorY = margin;
-      let shelfH = 0;
+      let cursorX = margin, cursorY = margin, shelfH = 0;
 
       for (const piece of resolved) {
         if (cursorX + piece.w_px + margin > DTF_WIDTH_PX) {
@@ -769,12 +1638,9 @@
         }
         placed.push({
           ...piece,
-          x_px: cursorX,
-          y_px: cursorY,
-          x_cm: pxToCm(cursorX),
-          y_cm: pxToCm(cursorY),
-          w_cm: pxToCm(piece.w_px),
-          h_cm: pxToCm(piece.h_px),
+          x_px: cursorX, y_px: cursorY,
+          x_cm: pxToCm(cursorX), y_cm: pxToCm(cursorY),
+          w_cm: pxToCm(piece.w_px), h_cm: pxToCm(piece.h_px),
         });
         cursorX += piece.w_px + DTF_GAP_PX;
         if (piece.h_px > shelfH) shelfH = piece.h_px;
@@ -787,17 +1653,9 @@
       const utilization_pct = Math.round((usedArea / sheetArea) * 10000) / 100;
 
       return {
-        ok: true,
-        sheet_width_cm: DTF_WIDTH_CM,
-        sheet_width_px: DTF_WIDTH_PX,
-        total_height_cm,
-        total_height_px,
-        gap_cm: DTF_GAP_CM,
-        gap_px: DTF_GAP_PX,
-        dpi: DPI,
-        utilization_pct,
-        pieces_count: placed.length,
-        placed,
+        ok: true, sheet_width_cm: DTF_WIDTH_CM, sheet_width_px: DTF_WIDTH_PX,
+        total_height_cm, total_height_px, gap_cm: DTF_GAP_CM, gap_px: DTF_GAP_PX,
+        dpi: DPI, utilization_pct, pieces_count: placed.length, placed,
       };
     }
 
@@ -810,10 +1668,10 @@
       }
       list.innerHTML = ready.map((d) => `
         <div class="dtf-piece-item">
-          <img src="${d.url}" alt="${d.title}" />
+          <img src="${d.url}" alt="${escHtml(d.title)}" />
           <div style="flex:1;">
-            <div style="font-weight:600;">${d.title}</div>
-            <div style="color:var(--muted);">${d.drop} · Ancho DTF: ${d.dtf_width_cm} cm</div>
+            <div style="font-weight:600;">${escHtml(d.title)}</div>
+            <div style="color:var(--muted);">${escHtml(d.drop)} · Ancho DTF: ${d.dtf_width_cm} cm</div>
           </div>
         </div>
       `).join("");
@@ -823,8 +1681,7 @@
       const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
       const sheet = $("dtfSheet");
       if (!ready.length) {
-        sheet.innerHTML = "";
-        LAST_DTF_LAYOUT = null;
+        sheet.innerHTML = ""; LAST_DTF_LAYOUT = null;
         $("dtfMetrics").textContent = "Sin piezas marcadas como Listo Pliego DTF.";
         return;
       }
@@ -845,7 +1702,7 @@
         div.style.height = (p.h_cm * scale) + "px";
         const src = byId[p.id]?.url || "";
         div.innerHTML = `
-          <img src="${src}" style="${p.rotated ? "transform:rotate(-90deg);" : ""}" alt="${p.title}" />
+          <img src="${src}" style="${p.rotated ? "transform:rotate(-90deg);" : ""}" alt="${escHtml(p.title)}" />
           <span class="dtf-tag">#${p.seq} ${p.w_cm}×${p.h_cm}cm</span>
         `;
         sheet.appendChild(div);
@@ -854,7 +1711,6 @@
     }
 
     $("btnDtfPreview").addEventListener("click", computeDtfPreview);
-
     $("btnExportDtfMission").addEventListener("click", () => {
       computeDtfPreview();
       if (!LAST_DTF_LAYOUT || !LAST_DTF_LAYOUT.placed.length) {
@@ -873,9 +1729,7 @@
         `TOTAL_PIEZAS: ${LAST_DTF_LAYOUT.pieces_count}`,
         "",
         "PIEZAS_EMPAQUETADAS:",
-        ...LAST_DTF_LAYOUT.placed.map((p) =>
-          `- #${p.seq} | ${p.id} | ${p.w_cm}x${p.h_cm} cm | pos=(${p.x_cm}, ${p.y_cm}) cm | rotado=${p.rotated}`
-        ),
+        ...LAST_DTF_LAYOUT.placed.map((p) => `- #${p.seq} | ${p.id} | ${p.w_cm}x${p.h_cm} cm | pos=(${p.x_cm}, ${p.y_cm}) cm | rotado=${p.rotated}`),
       ];
       downloadText("mision_pliego_dtf.txt", lines.join("\n"), "text/plain;charset=utf-8");
       $("dtfLog").textContent = "Exportado mision_pliego_dtf.txt con " + LAST_DTF_LAYOUT.pieces_count + " piezas.";
@@ -885,7 +1739,7 @@
       const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
       if (!ready.length) { $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF'."; return; }
       if (!LOCAL_ONLINE) {
-        $("dtfLog").textContent = "Servidor local (127.0.0.1:8787) no activo. Usa 'Exportar mision_pliego_dtf.txt' para descargar la orden de pliego.";
+        $("dtfLog").textContent = "Servidor local (127.0.0.1:8787) no activo. Usa 'Exportar mision_pliego_dtf.txt'.";
         return;
       }
       $("dtfLog").textContent = "Generando pliego 300 DPI en salidas_dtf/ ...";
