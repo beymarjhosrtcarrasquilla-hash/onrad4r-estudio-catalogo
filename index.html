@@ -367,18 +367,38 @@
           <div class="control-row">
             <label>Plantilla de Historia</label>
             <select id="storyTemplate">
+              <option value="dual_story" selected>Historia Dual Flat-Lay — Frente + Espalda</option>
               <option value="single_back">Historia Simple — Espalda</option>
               <option value="single_front">Historia Simple — Frente</option>
-              <option value="dual_story">Historia Dual — Frente + Espalda (Lado a Lado)</option>
             </select>
           </div>
           <div class="control-row">
-            <label>Fuente Principal (Composición Armada o Arte)</label>
+            <label>Tono de Prenda</label>
+            <select id="storyGarmentTone">
+              <option value="#121214" selected>Negro (#121214)</option>
+              <option value="#FFFFFF">Blanco (#FFFFFF)</option>
+              <option value="#1a1a1c">Carbón (#1a1a1c)</option>
+              <option value="#ccba98">Beige (#ccba98)</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Espalda (Composición o Arte)</label>
             <select id="storySourcePrimary"></select>
           </div>
-          <div class="control-row" id="storySecondaryRow" style="display:none;">
-            <label>Fuente Secundaria (para lado derecho en Dual Story)</label>
+          <div class="control-row" id="storySecondaryRow">
+            <label>Frente (Composición o Arte)</label>
             <select id="storySourceSecondary"></select>
+          </div>
+          <div class="control-row" id="storyFrontPlacementRow">
+            <label>Ubicación Frente</label>
+            <select id="storyFrontPlacement">
+              <option value="center" selected>Centro Frente (cx=426, top=475, w=215)</option>
+              <option value="chest">Pecho Izquierdo (cx=525, top=465, w=115)</option>
+            </select>
+          </div>
+          <div class="control-row" id="storyHemRow">
+            <label>Detalle Opcional Dobladillo (cx=268, top=848, w=172)</label>
+            <select id="storySourceHem"></select>
           </div>
           <div class="control-row">
             <label>Aura / Color de Fondo OOO DARK</label>
@@ -1151,10 +1171,41 @@
     async function runRemoteRender3D(drop_num, layout, send_telegram, logEl) {
       if (!drop_num) { logEl.textContent = "Ingresa un número de Drop (ej. 28)."; return; }
       if (!LOCAL_ONLINE) {
-        logEl.textContent = "Servidor local (127.0.0.1:8787) no detectado. Inicia servidor_estudio.py en tu PC para render_prendas_3d.py.";
+        const cmd = `python scripts/render_prendas_3d.py --only ${drop_num} --layout ${layout}`;
+        const missionText = [
+          `MISIÓN RENDER 3D — ON RAD4R`,
+          `FECHA: ${new Date().toISOString()}`,
+          `DROP: ${drop_num}`,
+          `LAYOUT: ${layout}`,
+          `ENVIAR_TELEGRAM: ${send_telegram ? "si" : "no"}`,
+          `TONO_PRENDA: ${$("storyGarmentTone") ? $("storyGarmentTone").value : "#121214"}`,
+          `COMANDO: ${cmd}`,
+        ].join("\n");
+
+        let copied = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(missionText);
+            copied = true;
+          } catch (_) {
+            copied = false;
+          }
+        }
+
+        const blob = new Blob([missionText + "\n"], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mision_render_3d_drop${drop_num}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        logEl.textContent = `Misión generada: mision_render_3d_drop${drop_num}.txt${copied ? " (copiada al portapapeles)" : ""}.\nEjecuta en tu PC:\n${cmd}`;
         return;
       }
-      logEl.textContent = `Ejecutando render_prendas_3d.py --only ${drop_num} --layout ${layout}...`;
+      logEl.textContent = `Ejecutando ${`python scripts/render_prendas_3d.py --only ${drop_num} --layout ${layout}`}...`;
       const r = await fetch(`${LOCAL_API}/api/render3d`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1179,10 +1230,17 @@
 
       const pSel = $("storySourcePrimary");
       const sSel = $("storySourceSecondary");
+      const hSel = $("storySourceHem");
       const prevP = pSel.value;
       const prevS = sSel.value;
+      const prevH = hSel ? hSel.value : "";
+
       pSel.innerHTML = optionsHtml;
       sSel.innerHTML = optionsHtml;
+      if (hSel) {
+        hSel.innerHTML = `<option value="">Ninguno (sin detalle en dobladillo)</option>` + optionsHtml;
+        if (prevH) hSel.value = prevH;
+      }
       if (prevP) pSel.value = prevP;
       if (prevS) sSel.value = prevS;
       else if (sSel.options.length > 1) sSel.selectedIndex = 1;
@@ -1253,19 +1311,117 @@
       }
     }
 
+    function drawTintedImage(ctx, img, x, y, w, h, tintColor) {
+      if (!tintColor) { ctx.drawImage(img, x, y, w, h); return; }
+      const off = document.createElement("canvas");
+      off.width = img.width;
+      off.height = img.height;
+      const octx = off.getContext("2d");
+      octx.drawImage(img, 0, 0);
+      octx.globalCompositeOperation = "source-in";
+      octx.fillStyle = tintColor;
+      octx.fillRect(0, 0, off.width, off.height);
+      ctx.drawImage(off, x, y, w, h);
+    }
+
+    async function drawStoryLayerPlacement(ctx, sourceVal, defaultView, { cx, topY = null, cy = null, width }) {
+      if (!sourceVal) return null;
+      const garment = resolveStoryGarment(sourceVal, defaultView);
+      const layers = garment.layers || [];
+      for (const layer of layers) {
+        const artImg = await loadImageSafe(layer.url);
+        if (!artImg) continue;
+        const dw = width;
+        const dh = dw * (artImg.height / artImg.width);
+        const dx = cx - dw / 2;
+        const dy = topY !== null ? topY : (cy - dh / 2);
+        ctx.save();
+        ctx.globalAlpha = (layer.opacity ?? 96) / 100;
+        ctx.shadowColor = "rgba(0,0,0,0.35)";
+        ctx.shadowBlur = 10;
+        ctx.drawImage(artImg, dx, dy, dw, dh);
+        ctx.restore();
+      }
+      return garment;
+    }
+
     async function renderStoryCanvas() {
       const canvas = $("storyCanvas");
       const ctx = canvas.getContext("2d");
       const W = 1080, H = 1920;
       const tpl = $("storyTemplate").value;
       const aura = $("storyAura").value;
+      const tone = $("storyGarmentTone") ? $("storyGarmentTone").value : "#121214";
+      const isDarkTone = tone === "#121214" || tone === "#1a1a1c";
       const title = $("storyTitle").value.trim() || "ON RAD4R // DROP";
       const subtitle = $("storySubtitle").value.trim() || "OOO DARK EDITION";
       const cta = $("storyCta").value.trim() || "ON RAD4R STUDIO";
 
-      $("storySecondaryRow").style.display = tpl === "dual_story" ? "flex" : "none";
+      const isDual = tpl === "dual_story";
+      $("storySecondaryRow").style.display = isDual ? "flex" : "none";
+      if ($("storyFrontPlacementRow")) $("storyFrontPlacementRow").style.display = isDual ? "flex" : "none";
+      if ($("storyHemRow")) $("storyHemRow").style.display = isDual ? "flex" : "none";
 
-      // Fondo OOO DARK + Aura
+      if (isDual) {
+        // Fondo real Dual Flat-Lay 1080x1920
+        const bgImg = await loadImageSafe("./assets/bases/base_maestra_dual_flatlay_story.jpg");
+        if (bgImg) {
+          ctx.drawImage(bgImg, 0, 0, W, H);
+        } else {
+          ctx.fillStyle = "#08090c";
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // Cabecera superior izquierda (x=72, y=64): logo 480px (invertido a blanco en tela oscura) + subtítulo sin cajas de footer
+        const logoImg = await loadImageSafe("./assets/logos/logo_on_rad4r_lineal_story.png");
+        let logoBottomY = 140;
+        if (logoImg) {
+          const logoW = 480;
+          const logoH = logoW * (logoImg.height / logoImg.width);
+          drawTintedImage(ctx, logoImg, 72, 64, logoW, logoH, isDarkTone ? "#ffffff" : null);
+          logoBottomY = 64 + logoH;
+        }
+
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = isDarkTone ? "#eef1f6" : "#121214";
+        ctx.font = "700 28px Segoe UI, sans-serif";
+        ctx.fillText(title.slice(0, 34), 72, logoBottomY + 18);
+        ctx.fillStyle = isDarkTone ? "rgba(238,241,246,0.78)" : "rgba(18,18,20,0.75)";
+        ctx.font = "600 22px Consolas, monospace";
+        ctx.fillText(subtitle.slice(0, 48), 72, logoBottomY + 56);
+        ctx.restore();
+
+        // Frente arriba a la izquierda (Centro: cx=426, top_y=475, w=215 | Pecho izq: cx=525, top_y=465, w=115)
+        const frontPlacement = $("storyFrontPlacement") ? $("storyFrontPlacement").value : "center";
+        const frontCfg = frontPlacement === "chest"
+          ? { cx: 525, topY: 465, width: 115 }
+          : { cx: 426, topY: 475, width: 215 };
+        await drawStoryLayerPlacement(ctx, $("storySourceSecondary").value, "frente", frontCfg);
+
+        // Detalle opcional en dobladillo (cx=268, top_y=848, width=172)
+        const hemVal = $("storySourceHem") ? $("storySourceHem").value : "";
+        if (hemVal) {
+          await drawStoryLayerPlacement(ctx, hemVal, "frente", { cx: 268, topY: 848, width: 172 });
+        }
+
+        // Espalda abajo a la derecha (cx=670, cy=1245, width=370)
+        const gBack = await drawStoryLayerPlacement(ctx, $("storySourcePrimary").value, "espalda", { cx: 670, cy: 1245, width: 370 });
+        if (gBack?.drop_num && !$("storyDropNum").value) $("storyDropNum").value = gBack.drop_num;
+
+        // Firma ON RAD4R en cx=670, top_y=1562
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = isDarkTone ? "rgba(255,255,255,0.88)" : "rgba(18,18,20,0.88)";
+        ctx.font = "700 26px Consolas, monospace";
+        ctx.fillText("ON RAD4R", 670, 1562);
+        ctx.restore();
+        return;
+      }
+
+      // Plantillas simples (single_front / single_back)
       ctx.fillStyle = "#08090c";
       ctx.fillRect(0, 0, W, H);
       const grad = ctx.createRadialGradient(W / 2, H * 0.45, 60, W / 2, H * 0.45, 760);
@@ -1275,13 +1431,11 @@
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      // Grilla técnica sutil
       ctx.strokeStyle = "rgba(255,255,255,0.035)";
       ctx.lineWidth = 1;
       for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
       for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
-      // Cabecera
       ctx.fillStyle = aura;
       ctx.font = "700 26px Consolas, monospace";
       ctx.textAlign = "center";
@@ -1295,20 +1449,11 @@
       ctx.font = "600 28px Segoe UI, sans-serif";
       ctx.fillText(subtitle.slice(0, 44), W / 2, 248);
 
-      // Prendas
       const g1 = resolveStoryGarment($("storySourcePrimary").value, tpl === "single_front" ? "frente" : "espalda");
       if (g1.drop_num && !$("storyDropNum").value) $("storyDropNum").value = g1.drop_num;
+      const lbl = tpl === "single_front" ? "FRENTE" : "ESPALDA";
+      await drawGarmentOnStoryCtx(ctx, g1, 140, 315, 800, 1220, lbl);
 
-      if (tpl === "dual_story") {
-        const gFront = resolveStoryGarment($("storySourceSecondary").value, "frente");
-        await drawGarmentOnStoryCtx(ctx, gFront, 54, 330, 468, 1140, "FRENTE");
-        await drawGarmentOnStoryCtx(ctx, g1, 558, 330, 468, 1140, "ESPALDA");
-      } else {
-        const lbl = tpl === "single_front" ? "FRENTE" : "ESPALDA";
-        await drawGarmentOnStoryCtx(ctx, g1, 140, 315, 800, 1220, lbl);
-      }
-
-      // Footer / CTA
       ctx.fillStyle = "rgba(17,19,25,0.92)";
       ctx.beginPath();
       ctx.roundRect(90, 1620, 900, 130, 22);
@@ -1327,7 +1472,8 @@
       ctx.fillText("TALLAS S · M · L · XL  |  DTF 300 DPI  |  @ONRAD4R", W / 2, 1825);
     }
 
-    ["storyTemplate", "storySourcePrimary", "storySourceSecondary", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
+    ["storyTemplate", "storyGarmentTone", "storySourcePrimary", "storySourceSecondary", "storyFrontPlacement", "storySourceHem", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
+      if (!$(id)) return;
       $(id).addEventListener("input", renderStoryCanvas);
       $(id).addEventListener("change", renderStoryCanvas);
     });
