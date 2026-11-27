@@ -338,14 +338,6 @@
               <input type="range" id="fitterScale" min="8" max="90" value="48" />
             </div>
             <div class="control-row">
-              <label>Posición X: <strong id="lblPosX">50%</strong></label>
-              <input type="range" id="fitterX" min="10" max="90" value="50" />
-            </div>
-            <div class="control-row">
-              <label>Posición Y: <strong id="lblPosY">45%</strong></label>
-              <input type="range" id="fitterY" min="12" max="88" value="45" />
-            </div>
-            <div class="control-row">
               <label>Opacidad tinta: <strong id="lblOpacity">95%</strong></label>
               <input type="range" id="fitterOpacity" min="30" max="100" value="95" />
             </div>
@@ -995,12 +987,8 @@
       box.style.opacity = "1";
       $("activeLayerTitle").textContent = `Capa (${garmentProject.activeSide === "front" ? "Frente" : "Espalda"}): ${active.drop} · ${active.title}`;
       $("fitterScale").value = active.scale;
-      $("fitterX").value = active.x;
-      $("fitterY").value = active.y;
       $("fitterOpacity").value = active.opacity;
       $("lblScale").textContent = active.scale + "%";
-      $("lblPosX").textContent = active.x + "%";
-      $("lblPosY").textContent = active.y + "%";
       $("lblOpacity").textContent = active.opacity + "%";
     }
 
@@ -1118,13 +1106,11 @@
       addLayerFromDesign(d, false);
     });
 
-    ["fitterScale", "fitterX", "fitterY", "fitterOpacity"].forEach((id) => {
+    ["fitterScale", "fitterOpacity"].forEach((id) => {
       $(id).addEventListener("input", () => {
         const active = getActiveLayer();
         if (!active) return;
         active.scale = Number($("fitterScale").value);
-        active.x = Number($("fitterX").value);
-        active.y = Number($("fitterY").value);
         active.opacity = Number($("fitterOpacity").value);
         renderFitterStage();
       });
@@ -1405,10 +1391,11 @@
     });
 
     // ==================== MÓDULO 3: HISTORIAS (1080x1920) ====================
-    // Mapeo 1:1 exacto entre el torso del Probador (9:16: x=[22%,78%], y=[31%,83%]) y el Dual Flat-Lay (1080x1920)
-    const PROBADOR_TORSO_BOUNDS = { xMin: 22, xMax: 78, yMin: 31, yMax: 83 };
-    const FLATLAY_FRONT_TORSO = { left: 176, top: 310, width: 508, height: 765 };
-    const FLATLAY_BACK_TORSO = { left: 417, top: 888, width: 509, height: 733 };
+    // Mapeo 1:1 exacto usando el marco completo de silueta de cada camiseta
+    // Probador (9:16): x=[14%,86%] (w=72%, cx=50%), y=[22%,86%] (h=64%, cy=54%)
+    const PROBADOR_SHIRT_FRAME = { cx: 50, cy: 54, w: 72, h: 64 };
+    const FLATLAY_FRONT_SHIRT = { cx: 429, cy: 688.5, w: 802, h: 777 };
+    const FLATLAY_BACK_SHIRT = { cx: 670.5, cy: 1251.5, w: 753, h: 743 };
 
     function populateStorySources() {
       const dualSel = $("storyDualSource");
@@ -1450,43 +1437,25 @@
       return null;
     }
 
-    async function projectProbadorLayersToFlatLay(ctx, layers, targetBox) {
+    async function projectProbadorLayersToFlatLay(ctx, layers, targetShirt) {
       if (!layers || !layers.length) return;
-      const srcW = PROBADOR_TORSO_BOUNDS.xMax - PROBADOR_TORSO_BOUNDS.xMin;
-      const srcH = PROBADOR_TORSO_BOUNDS.yMax - PROBADOR_TORSO_BOUNDS.yMin;
       for (const layer of layers) {
         const artImg = await loadImageSafe(layer.url);
         if (!artImg) continue;
-        const relX = (layer.x - PROBADOR_TORSO_BOUNDS.xMin) / srcW;
-        const relY = (layer.y - PROBADOR_TORSO_BOUNDS.yMin) / srcH;
-        const relW = (layer.scale || 46) / srcW;
-        const dw = relW * targetBox.width;
-        const dh = dw * (artImg.height / artImg.width);
-        const cx = targetBox.left + relX * targetBox.width;
-        const cy = targetBox.top + relY * targetBox.height;
+        const nx = ((layer.x ?? PROBADOR_SHIRT_FRAME.cx) - PROBADOR_SHIRT_FRAME.cx) / PROBADOR_SHIRT_FRAME.w;
+        const ny = ((layer.y ?? PROBADOR_SHIRT_FRAME.cy) - PROBADOR_SHIRT_FRAME.cy) / PROBADOR_SHIRT_FRAME.h;
+        const nw = (layer.scale || 46) / PROBADOR_SHIRT_FRAME.w;
+        const drawW = nw * targetShirt.w;
+        const drawH = drawW * (artImg.height / artImg.width);
+        const cx = targetShirt.cx + nx * targetShirt.w;
+        const cy = targetShirt.cy + ny * targetShirt.h;
         ctx.save();
         ctx.globalAlpha = (layer.opacity ?? 95) / 100;
         ctx.shadowColor = "rgba(0,0,0,0.35)";
         ctx.shadowBlur = 10;
-        ctx.drawImage(artImg, cx - dw / 2, cy - dh / 2, dw, dh);
+        ctx.drawImage(artImg, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
         ctx.restore();
       }
-    }
-
-    function resolveStoryGarment(sourceVal, defaultView) {
-      if (sourceVal && sourceVal.startsWith("comp:")) {
-        const comp = SAVED_COMPOSITIONS.find((c) => c.id === sourceVal.slice(5));
-        if (comp) return { baseUrl: comp.baseUrl, layers: comp.layers, drop_num: comp.layers[0]?.drop_num || "" };
-      }
-      const artId = sourceVal && sourceVal.startsWith("art:") ? sourceVal.slice(4) : sourceVal;
-      const art = allDesigns().find((d) => d.id === artId) || allDesigns()[0];
-      const base = INVENTORY.bases.find((b) => b.view === defaultView) || INVENTORY.bases[0];
-      const coords = defaultCoordsForCategory(art?.category || "arte");
-      return {
-        baseUrl: base?.url || "",
-        drop_num: art?.drop_num || "",
-        layers: art ? [{ url: art.url, x: coords.x, y: coords.y, scale: coords.scale, opacity: 96 }] : [],
-      };
     }
 
     async function drawGarmentOnStoryCtx(ctx, garment, boxX, boxY, boxW, boxH, label) {
@@ -1549,27 +1518,6 @@
       octx.fillStyle = tintColor;
       octx.fillRect(0, 0, off.width, off.height);
       ctx.drawImage(off, x, y, w, h);
-    }
-
-    async function drawStoryLayerPlacement(ctx, sourceVal, defaultView, { cx, topY = null, cy = null, width }) {
-      if (!sourceVal) return null;
-      const garment = resolveStoryGarment(sourceVal, defaultView);
-      const layers = garment.layers || [];
-      for (const layer of layers) {
-        const artImg = await loadImageSafe(layer.url);
-        if (!artImg) continue;
-        const dw = width;
-        const dh = dw * (artImg.height / artImg.width);
-        const dx = cx - dw / 2;
-        const dy = topY !== null ? topY : (cy - dh / 2);
-        ctx.save();
-        ctx.globalAlpha = (layer.opacity ?? 96) / 100;
-        ctx.shadowColor = "rgba(0,0,0,0.35)";
-        ctx.shadowBlur = 10;
-        ctx.drawImage(artImg, dx, dy, dw, dh);
-        ctx.restore();
-      }
-      return garment;
     }
 
     async function renderStoryCanvas() {
@@ -1660,8 +1608,8 @@
         ctx.fillText(subtitle.toUpperCase().slice(0, 48), 72, logoBottomY + 52);
         ctx.restore();
 
-        await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_TORSO);
-        await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_TORSO);
+        await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_SHIRT);
+        await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_SHIRT);
         if (dualProject.drop_num && !$("storyDropNum").value) $("storyDropNum").value = dualProject.drop_num;
         $("storyLog").textContent = `Replicación 1:1 exacta (${dualProject.frontLayers.length} frente + ${dualProject.backLayers.length} espalda · tono ${tone}).`;
 

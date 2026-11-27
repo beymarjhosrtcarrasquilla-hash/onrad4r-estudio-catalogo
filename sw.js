@@ -1,4 +1,4 @@
-const CACHE_NAME = "onrad4r-estudio-pwa-v5";
+const CACHE_NAME = "onrad4r-estudio-pwa-v6";
 const SHELL_ASSETS = [
   "./",
   "./index.html",
