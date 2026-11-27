@@ -591,7 +591,7 @@
 
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js?v=10").catch(() => {});
+      navigator.serviceWorker.register("./sw.js?v=11").catch(() => {});
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
@@ -755,7 +755,7 @@
     }
 
     async function loadInventory() {
-      const res = await fetch("./inventario.json?v=10");
+      const res = await fetch("./inventario.json?v=11");
       INVENTORY = await res.json();
       await checkLocalServer();
       applyStateToInventory(INVENTORY);
@@ -1219,12 +1219,20 @@
       }
       return null;
     }
-    function loadStoryLogoSafe() {
-      return loadImageSafe("./assets/logos/logo_on_rad4r_lineal_story.png", [
+    async function loadStoryLogoSafe() {
+      const candidates = [
+        "./assets/logos/logo_on_rad4r_lineal_story.png",
         "assets/logos/logo_on_rad4r_lineal_story.png",
         "./assets/logos/logo_on_rad4r_solo_texto.png",
         "assets/logos/logo_on_rad4r_solo_texto.png"
-      ]);
+      ];
+      for (const path of candidates) {
+        const imgNoCors = await loadImageOnce(path, false);
+        if (imgNoCors) return imgNoCors;
+        const imgCors = await loadImageOnce(path, true);
+        if (imgCors) return imgCors;
+      }
+      return null;
     }
 
     async function renderSingleSideToCtx(ctx, baseUrl, layers, boxX, boxY, boxW, boxH, tone) {
@@ -1703,37 +1711,37 @@
           if (tone === "#121214") {
             ctx.globalCompositeOperation = "source-over";
             ctx.globalAlpha = 1;
-            ctx.fillStyle = "rgba(14, 15, 18, 0.78)";
+            ctx.fillStyle = "rgba(10, 11, 14, 0.85)";
             ctx.fillRect(0, 0, W, H);
             ctx.globalCompositeOperation = "multiply";
-            ctx.globalAlpha = 0.45;
+            ctx.globalAlpha = 0.55;
             ctx.fillStyle = "#121214";
             ctx.fillRect(0, 0, W, H);
           } else if (tone === "#1a1a1c") {
             ctx.globalCompositeOperation = "source-over";
             ctx.globalAlpha = 1;
-            ctx.fillStyle = "rgba(34, 36, 42, 0.68)";
+            ctx.fillStyle = "rgba(28, 30, 36, 0.78)";
             ctx.fillRect(0, 0, W, H);
             ctx.globalCompositeOperation = "multiply";
-            ctx.globalAlpha = 0.30;
+            ctx.globalAlpha = 0.38;
             ctx.fillStyle = "#1a1a1c";
             ctx.fillRect(0, 0, W, H);
           } else if (tone === "#FFFFFF") {
             ctx.globalCompositeOperation = "screen";
-            ctx.globalAlpha = 0.52;
+            ctx.globalAlpha = 0.58;
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, W, H);
             ctx.globalCompositeOperation = "soft-light";
-            ctx.globalAlpha = 0.22;
+            ctx.globalAlpha = 0.26;
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, W, H);
           } else if (tone === "#ccba98") {
             ctx.globalCompositeOperation = "multiply";
             ctx.globalAlpha = 1;
-            ctx.fillStyle = "rgba(204, 186, 152, 0.55)";
+            ctx.fillStyle = "rgba(204, 186, 152, 0.62)";
             ctx.fillRect(0, 0, W, H);
             ctx.globalCompositeOperation = "soft-light";
-            ctx.globalAlpha = 0.28;
+            ctx.globalAlpha = 0.30;
             ctx.fillStyle = "#ccba98";
             ctx.fillRect(0, 0, W, H);
           } else {
@@ -1751,22 +1759,26 @@
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
 
-        // Cabecera superior izquierda (x=72, y=64): logo lineal + ON RAD4R + edición con contraste garantizado
+        // Cabecera superior izquierda (x=72, y=56): logo lineal + ON RAD4R + edición con contraste garantizado
         const hasLightHeaderBg = Boolean(bgImg) && styleBg !== "dark_ooo";
         const logoImg = await loadStoryLogoSafe();
         if (renderSeq !== storyRenderSeq) return;
-        let logoBottomY = 152;
+        let logoBottomY = 162;
         if (logoImg) {
-          const logoW = 460;
-          const logoH = Math.round(logoW * (logoImg.height / logoImg.width));
+          const targetW = 480;
+          const targetH = Math.round(targetW * (logoImg.height / logoImg.width));
           ctx.save();
           ctx.globalAlpha = 1;
           ctx.globalCompositeOperation = "source-over";
           ctx.shadowColor = hasLightHeaderBg ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.45)";
           ctx.shadowBlur = 4;
-          drawTintedImage(ctx, logoImg, 72, 64, logoW, logoH, hasLightHeaderBg ? "#111319" : "#ffffff");
+          if (hasLightHeaderBg) {
+            ctx.drawImage(logoImg, 72, 56, targetW, targetH);
+          } else {
+            drawTintedImage(ctx, logoImg, 72, 56, targetW, targetH, "#ffffff");
+          }
           ctx.restore();
-          logoBottomY = 64 + logoH;
+          logoBottomY = 56 + targetH;
         }
 
         ctx.save();
