@@ -154,17 +154,24 @@
       width: 100%; padding: 11px 14px; font-size: 13px; font-weight: 800; letter-spacing: 0.03em;
     }
 
-    .layers-list { display: flex; flex-direction: column; gap: 6px; max-height: 210px; overflow-y: auto; }
-    .layer-item {
-      display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px;
-      background: var(--bg); border: 1px solid var(--border); cursor: pointer; font-size: 12px;
+    .layers-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .layer-chip {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 999px;
+      background: var(--bg); border: 1px solid var(--border); cursor: pointer; font-size: 11px; max-width: 100%;
     }
-    .layer-item.active { border-color: var(--accent); background: rgba(0, 229, 160, 0.08); }
-    .layer-item img { width: 32px; height: 32px; object-fit: contain; background: #161922; border-radius: 4px; }
-    .layer-item-info { flex: 1; min-width: 0; }
-    .layer-item-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-    .layer-item-info span { font-size: 11px; color: var(--muted); }
-    .layer-actions { display: flex; gap: 3px; }
+    .layer-chip.active { border-color: var(--accent); background: rgba(0, 229, 160, 0.12); color: var(--accent); }
+    .layer-chip-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; font-weight: 600; }
+    .layer-chip-del {
+      background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 12px; line-height: 1;
+    }
+    .layer-chip-del:hover { color: var(--danger); }
+    .size-stepper { display: flex; align-items: center; gap: 6px; }
+    .size-stepper input[type="range"] { flex: 1; min-width: 0; }
+    .story-adj-box {
+      display: flex; flex-direction: column; gap: 8px; padding: 10px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .story-adj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
     .comp-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
     .comp-item {
@@ -180,8 +187,9 @@
     #storyCanvas {
       width: 360px; max-width: 100%; height: auto; aspect-ratio: 9 / 16;
       border-radius: 10px; border: 1px solid var(--border); background: #090a0d;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65); cursor: grab; touch-action: none;
     }
+    #storyCanvas.dragging { cursor: grabbing; }
 
     .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
     .cat-card {
@@ -319,23 +327,27 @@
           </div>
 
           <div class="control-row">
-            <label>Capas Activas (<span id="layersCount">0</span>) — clic para editar o arrastra en la prenda</label>
-            <div class="layers-list" id="layersList"></div>
+            <label>Diseños en Prenda (<span id="layersCount">0</span>) — toca en la camiseta o aquí</label>
+            <div class="layers-chips" id="layersList"></div>
           </div>
 
           <div id="activeLayerControls" style="display:flex;flex-direction:column;gap:9px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:12px;color:var(--accent);" id="activeLayerTitle">Sin capa seleccionada</strong>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
+              <strong style="font-size:12px;color:var(--accent);" id="activeLayerTitle">Sin diseño seleccionado</strong>
               <div style="display:flex;gap:4px;">
-                <button class="btn btn-sm" onclick="applyFitterPreset('espalda')">Espalda</button>
-                <button class="btn btn-sm" onclick="applyFitterPreset('frente')">Frente</button>
-                <button class="btn btn-sm" onclick="applyFitterPreset('pecho')">Pecho</button>
-                <button class="btn btn-sm" onclick="applyFitterPreset('costado')">Costado</button>
+                <button type="button" class="btn btn-sm" onclick="applyFitterPreset('espalda')">Espalda</button>
+                <button type="button" class="btn btn-sm" onclick="applyFitterPreset('frente')">Frente</button>
+                <button type="button" class="btn btn-sm" onclick="applyFitterPreset('pecho')">Pecho</button>
+                <button type="button" class="btn btn-sm" onclick="applyFitterPreset('costado')">Costado</button>
               </div>
             </div>
             <div class="control-row">
-              <label>Escala: <strong id="lblScale">48%</strong></label>
-              <input type="range" id="fitterScale" min="8" max="90" value="48" />
+              <label>Tamaño: <strong id="lblScale">48%</strong> (arrastra en la prenda para mover)</label>
+              <div class="size-stepper">
+                <button type="button" class="btn btn-sm" id="btnSizeMinus">- Tamaño</button>
+                <input type="range" id="fitterScale" min="8" max="90" value="48" />
+                <button type="button" class="btn btn-sm" id="btnSizePlus">+ Tamaño</button>
+              </div>
             </div>
             <div class="control-row">
               <label>Opacidad tinta: <strong id="lblOpacity">95%</strong></label>
@@ -351,7 +363,7 @@
             </div>
           </div>
 
-          <button type="button" class="btn btn-primary btn-hero" id="btnGoDualStory">Generar Historia Dual (1080×1920) →</button>
+          <button type="button" class="btn btn-primary btn-hero" id="btnGoDualStory">Enviar Frente y Espalda a Historia →</button>
 
           <div class="control-row">
             <label>Prendas Armadas Guardadas (<span id="savedCompCount">0</span>)</label>
@@ -439,6 +451,35 @@
             <input type="text" id="storyCta" value="DISPONIBLE EN CATÁLOGO #1 · ON RAD4R" />
           </div>
 
+          <div class="story-adj-box" id="storyAdjustBox">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+              <strong style="font-size:12px;color:var(--accent);">Calibración Directa (Arrastra en Canvas)</strong>
+              <button type="button" class="btn btn-sm" id="btnStoryAdjReset">Reset</button>
+            </div>
+            <div class="side-switcher">
+              <button type="button" class="btn btn-sm btn-primary" id="btnStoryAdjFront">Calibrar Frente</button>
+              <button type="button" class="btn btn-sm" id="btnStoryAdjBack">Calibrar Espalda</button>
+            </div>
+            <div class="story-adj-grid">
+              <div class="control-row">
+                <label>Escala Frente: <strong id="lblStoryFrontScale">100%</strong></label>
+                <input type="range" id="storyFrontScale" min="50" max="160" value="100" />
+              </div>
+              <div class="control-row">
+                <label>Escala Espalda: <strong id="lblStoryBackScale">100%</strong></label>
+                <input type="range" id="storyBackScale" min="50" max="160" value="100" />
+              </div>
+              <div class="control-row">
+                <label>Desplazar X (<span id="lblStoryAdjSide">Frente</span>): <strong id="lblStoryAdjDx">0px</strong></label>
+                <input type="range" id="storyAdjDx" min="-180" max="180" value="0" />
+              </div>
+              <div class="control-row">
+                <label>Desplazar Y (<span id="lblStoryAdjSide2">Frente</span>): <strong id="lblStoryAdjDy">0px</strong></label>
+                <input type="range" id="storyAdjDy" min="-180" max="180" value="0" />
+              </div>
+            </div>
+          </div>
+
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="btn btn-primary" id="btnStoryRender" style="flex:1;">Actualizar Vista</button>
             <button class="btn btn-primary" id="btnStoryDlPng">Descargar PNG</button>
@@ -503,6 +544,7 @@
             <label>Prefijo del pliego</label>
             <input type="text" id="dtfPrefix" value="pliego_estudio_onrad4r" />
           </div>
+
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="btn" id="btnDtfPreview">Calcular Empaquetado</button>
             <button class="btn btn-primary" id="btnExportDtfMission">Exportar mision_pliego_dtf.txt</button>
@@ -532,7 +574,7 @@
 
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
+      navigator.serviceWorker.register("./sw.js?v=7").catch(() => {});
     }
 
     const STORAGE_KEY = "onrad4r_estudio_state_v1";
@@ -696,7 +738,7 @@
     }
 
     async function loadInventory() {
-      const res = await fetch("./inventario.json");
+      const res = await fetch("./inventario.json?v=7");
       INVENTORY = await res.json();
       await checkLocalServer();
       applyStateToInventory(INVENTORY);
@@ -999,57 +1041,30 @@
       if ($("backLayersBadge")) $("backLayersBadge").textContent = garmentProject.backLayers.length;
       const list = $("layersList");
       if (!layers.length) {
-        list.innerHTML = `<div style="font-size:12px;color:var(--muted);">Sin capas en ${garmentProject.activeSide === "front" ? "Frente" : "Espalda"}. Usa "+ Agregar diseño".</div>`;
+        list.innerHTML = `<div style="font-size:12px;color:var(--muted);">Sin diseños en ${garmentProject.activeSide === "front" ? "Frente" : "Espalda"}. Usa "+ Agregar diseño".</div>`;
         return;
       }
       list.innerHTML = "";
       layers.forEach((l, idx) => {
-        const row = document.createElement("div");
-        row.className = "layer-item" + (l.uid === garmentProject.activeUid ? " active" : "");
-        row.innerHTML = `
-          <img src="${l.url}" alt="${escHtml(l.title)}" />
-          <div class="layer-item-info">
-            <strong>#${idx + 1} ${escHtml(l.title)}</strong>
-            <span>${escHtml(l.drop)} · ${l.scale}% · (${l.x}%, ${l.y}%)</span>
-          </div>
-          <div class="layer-actions">
-            <button class="btn btn-sm act-up" title="Subir capa">↑</button>
-            <button class="btn btn-sm act-dn" title="Bajar capa">↓</button>
-            <button class="btn btn-sm act-dup" title="Duplicar">⧉</button>
-            <button class="btn btn-sm btn-danger act-del" title="Eliminar">✕</button>
-          </div>
+        const chip = document.createElement("div");
+        chip.className = "layer-chip" + (l.uid === garmentProject.activeUid ? " active" : "");
+        chip.innerHTML = `
+          <span class="layer-chip-label">#${idx + 1} ${escHtml(l.title)} (${l.scale}%)</span>
+          <button type="button" class="layer-chip-del" title="Quitar">✕</button>
         `;
-        row.addEventListener("click", (e) => {
-          if (e.target.closest("button")) return;
+        chip.addEventListener("click", (e) => {
+          if (e.target.closest(".layer-chip-del")) return;
           garmentProject.activeUid = l.uid;
           renderFitterStage();
         });
-        row.querySelector(".act-up").addEventListener("click", () => {
-          if (idx < layers.length - 1) {
-            [layers[idx], layers[idx + 1]] = [layers[idx + 1], layers[idx]];
-            renderFitterStage();
-          }
-        });
-        row.querySelector(".act-dn").addEventListener("click", () => {
-          if (idx > 0) {
-            [layers[idx], layers[idx - 1]] = [layers[idx - 1], layers[idx]];
-            renderFitterStage();
-          }
-        });
-        row.querySelector(".act-dup").addEventListener("click", () => {
-          const copy = { ...l, uid: uid(), x: Math.min(85, l.x + 5), y: Math.min(85, l.y + 5) };
-          layers.splice(idx + 1, 0, copy);
-          garmentProject.activeUid = copy.uid;
-          renderFitterStage();
-        });
-        row.querySelector(".act-del").addEventListener("click", () => {
+        chip.querySelector(".layer-chip-del").addEventListener("click", () => {
           layers.splice(idx, 1);
           if (garmentProject.activeUid === l.uid) {
             garmentProject.activeUid = layers[layers.length - 1]?.uid || null;
           }
           renderFitterStage();
         });
-        list.appendChild(row);
+        list.appendChild(chip);
       });
     }
 
@@ -1106,6 +1121,15 @@
       addLayerFromDesign(d, false);
     });
 
+    function stepActiveLayerScale(delta) {
+      const active = getActiveLayer();
+      if (!active) return;
+      active.scale = Math.max(8, Math.min(90, Number(active.scale || 46) + delta));
+      renderFitterStage();
+    }
+    $("btnSizeMinus").addEventListener("click", () => stepActiveLayerScale(-3));
+    $("btnSizePlus").addEventListener("click", () => stepActiveLayerScale(3));
+
     ["fitterScale", "fitterOpacity"].forEach((id) => {
       $(id).addEventListener("input", () => {
         const active = getActiveLayer();
@@ -1145,12 +1169,14 @@
       moveActiveLayerTo(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: false });
 
+    const IMAGE_CACHE = new Map();
     function loadImageSafe(src) {
+      if (!src) return Promise.resolve(null);
+      if (IMAGE_CACHE.has(src)) return Promise.resolve(IMAGE_CACHE.get(src));
       return new Promise((resolve) => {
-        if (!src) return resolve(null);
         const img = new Image();
         img.crossOrigin = "anonymous";
-        img.onload = () => resolve(img);
+        img.onload = () => { IMAGE_CACHE.set(src, img); resolve(img); };
         img.onerror = () => resolve(null);
         img.src = src;
       });
@@ -1391,11 +1417,33 @@
     });
 
     // ==================== MÓDULO 3: HISTORIAS (1080x1920) ====================
-    // Mapeo 1:1 exacto usando el marco completo de silueta de cada camiseta
-    // Probador (9:16): x=[14%,86%] (w=72%, cx=50%), y=[22%,86%] (h=64%, cy=54%)
-    const PROBADOR_SHIRT_FRAME = { cx: 50, cy: 54, w: 72, h: 64 };
-    const FLATLAY_FRONT_SHIRT = { cx: 429, cy: 688.5, w: 802, h: 777 };
-    const FLATLAY_BACK_SHIRT = { cx: 670.5, cy: 1251.5, w: 753, h: 743 };
+    // Proyección proporcional desde el centro del lienzo del Probador (50%, 50%)
+    const PROBADOR_SHIRT_FRAME = { cx: 50, cy: 50, w: 100, h: 100 };
+    const FLATLAY_FRONT_SHIRT = { cx: 430, cy: 690, w: 500, h: 760 };
+    const FLATLAY_BACK_SHIRT = { cx: 671, cy: 1250, w: 500, h: 730 };
+
+    const storyAdjust = {
+      activeSide: "front",
+      front: { scale: 100, dx: 0, dy: 0 },
+      back: { scale: 100, dx: 0, dy: 0 },
+    };
+
+    function syncStoryAdjustUI() {
+      const isFront = storyAdjust.activeSide === "front";
+      const cur = storyAdjust[storyAdjust.activeSide];
+      if ($("btnStoryAdjFront")) $("btnStoryAdjFront").classList.toggle("btn-primary", isFront);
+      if ($("btnStoryAdjBack")) $("btnStoryAdjBack").classList.toggle("btn-primary", !isFront);
+      if ($("lblStoryAdjSide")) $("lblStoryAdjSide").textContent = isFront ? "Frente" : "Espalda";
+      if ($("lblStoryAdjSide2")) $("lblStoryAdjSide2").textContent = isFront ? "Frente" : "Espalda";
+      if ($("storyFrontScale")) $("storyFrontScale").value = storyAdjust.front.scale;
+      if ($("storyBackScale")) $("storyBackScale").value = storyAdjust.back.scale;
+      if ($("lblStoryFrontScale")) $("lblStoryFrontScale").textContent = storyAdjust.front.scale + "%";
+      if ($("lblStoryBackScale")) $("lblStoryBackScale").textContent = storyAdjust.back.scale + "%";
+      if ($("storyAdjDx")) $("storyAdjDx").value = cur.dx;
+      if ($("storyAdjDy")) $("storyAdjDy").value = cur.dy;
+      if ($("lblStoryAdjDx")) $("lblStoryAdjDx").textContent = cur.dx + "px";
+      if ($("lblStoryAdjDy")) $("lblStoryAdjDy").textContent = cur.dy + "px";
+    }
 
     function populateStorySources() {
       const dualSel = $("storyDualSource");
@@ -1437,18 +1485,21 @@
       return null;
     }
 
-    async function projectProbadorLayersToFlatLay(ctx, layers, targetShirt) {
+    async function projectProbadorLayersToFlatLay(ctx, layers, targetShirt, adj = { scale: 100, dx: 0, dy: 0 }) {
       if (!layers || !layers.length) return;
+      const scaleMul = (adj.scale ?? 100) / 100;
+      const dx = adj.dx ?? 0;
+      const dy = adj.dy ?? 0;
       for (const layer of layers) {
         const artImg = await loadImageSafe(layer.url);
         if (!artImg) continue;
         const nx = ((layer.x ?? PROBADOR_SHIRT_FRAME.cx) - PROBADOR_SHIRT_FRAME.cx) / PROBADOR_SHIRT_FRAME.w;
         const ny = ((layer.y ?? PROBADOR_SHIRT_FRAME.cy) - PROBADOR_SHIRT_FRAME.cy) / PROBADOR_SHIRT_FRAME.h;
         const nw = (layer.scale || 46) / PROBADOR_SHIRT_FRAME.w;
-        const drawW = nw * targetShirt.w;
+        const drawW = nw * targetShirt.w * scaleMul;
         const drawH = drawW * (artImg.height / artImg.width);
-        const cx = targetShirt.cx + nx * targetShirt.w;
-        const cy = targetShirt.cy + ny * targetShirt.h;
+        const cx = targetShirt.cx + nx * targetShirt.w + dx;
+        const cy = targetShirt.cy + ny * targetShirt.h + dy;
         ctx.save();
         ctx.globalAlpha = (layer.opacity ?? 95) / 100;
         ctx.shadowColor = "rgba(0,0,0,0.35)";
@@ -1608,8 +1659,9 @@
         ctx.fillText(subtitle.toUpperCase().slice(0, 48), 72, logoBottomY + 52);
         ctx.restore();
 
-        await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_SHIRT);
-        await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_SHIRT);
+        if ($("storyAdjustBox")) $("storyAdjustBox").style.display = "flex";
+        await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_SHIRT, storyAdjust.front);
+        await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_SHIRT, storyAdjust.back);
         if (dualProject.drop_num && !$("storyDropNum").value) $("storyDropNum").value = dualProject.drop_num;
         $("storyLog").textContent = `Replicación 1:1 exacta (${dualProject.frontLayers.length} frente + ${dualProject.backLayers.length} espalda · tono ${tone}).`;
 
@@ -1625,6 +1677,7 @@
       }
 
       // Plantillas simples (single_front / single_back) tomadas directamente de la Prenda Armada
+      if ($("storyAdjustBox")) $("storyAdjustBox").style.display = "none";
       ctx.fillStyle = "#08090c";
       ctx.fillRect(0, 0, W, H);
       const grad = ctx.createRadialGradient(W / 2, H * 0.45, 60, W / 2, H * 0.45, 760);
@@ -1702,6 +1755,103 @@
       $(id).addEventListener("change", renderStoryCanvas);
     });
     $("btnStoryRender").addEventListener("click", renderStoryCanvas);
+
+    // Calibración fina directa en Story Canvas (sliders + clic/arrastre)
+    let storyRenderRaf = 0;
+    const scheduleStoryRender = () => {
+      if (storyRenderRaf) return;
+      storyRenderRaf = requestAnimationFrame(() => {
+        storyRenderRaf = 0;
+        renderStoryCanvas();
+      });
+    };
+    if ($("btnStoryAdjFront")) {
+      $("btnStoryAdjFront").addEventListener("click", () => { storyAdjust.activeSide = "front"; syncStoryAdjustUI(); });
+    }
+    if ($("btnStoryAdjBack")) {
+      $("btnStoryAdjBack").addEventListener("click", () => { storyAdjust.activeSide = "back"; syncStoryAdjustUI(); });
+    }
+    if ($("btnStoryAdjReset")) {
+      $("btnStoryAdjReset").addEventListener("click", () => {
+        storyAdjust.front = { scale: 100, dx: 0, dy: 0 };
+        storyAdjust.back = { scale: 100, dx: 0, dy: 0 };
+        syncStoryAdjustUI();
+        renderStoryCanvas();
+      });
+    }
+    if ($("storyFrontScale")) {
+      $("storyFrontScale").addEventListener("input", () => {
+        storyAdjust.front.scale = Number($("storyFrontScale").value);
+        syncStoryAdjustUI();
+        scheduleStoryRender();
+      });
+    }
+    if ($("storyBackScale")) {
+      $("storyBackScale").addEventListener("input", () => {
+        storyAdjust.back.scale = Number($("storyBackScale").value);
+        syncStoryAdjustUI();
+        scheduleStoryRender();
+      });
+    }
+    if ($("storyAdjDx")) {
+      $("storyAdjDx").addEventListener("input", () => {
+        storyAdjust[storyAdjust.activeSide].dx = Number($("storyAdjDx").value);
+        syncStoryAdjustUI();
+        scheduleStoryRender();
+      });
+    }
+    if ($("storyAdjDy")) {
+      $("storyAdjDy").addEventListener("input", () => {
+        storyAdjust[storyAdjust.activeSide].dy = Number($("storyAdjDy").value);
+        syncStoryAdjustUI();
+        scheduleStoryRender();
+      });
+    }
+
+    let storyDragState = null;
+    const getStoryCanvasCoords = (clientX, clientY) => {
+      const rect = $("storyCanvas").getBoundingClientRect();
+      return {
+        x: ((clientX - rect.left) / rect.width) * 1080,
+        y: ((clientY - rect.top) / rect.height) * 1920,
+      };
+    };
+    const startStoryDrag = (clientX, clientY) => {
+      if ($("storyTemplate").value !== "dual_story") return;
+      const pt = getStoryCanvasCoords(clientX, clientY);
+      const dFront = Math.hypot(pt.x - FLATLAY_FRONT_SHIRT.cx, pt.y - FLATLAY_FRONT_SHIRT.cy);
+      const dBack = Math.hypot(pt.x - FLATLAY_BACK_SHIRT.cx, pt.y - FLATLAY_BACK_SHIRT.cy);
+      const side = dFront <= dBack ? "front" : "back";
+      storyAdjust.activeSide = side;
+      syncStoryAdjustUI();
+      storyDragState = { side, startX: pt.x, startY: pt.y, origDx: storyAdjust[side].dx, origDy: storyAdjust[side].dy };
+      $("storyCanvas").classList.add("dragging");
+    };
+    const moveStoryDrag = (clientX, clientY) => {
+      if (!storyDragState) return;
+      const pt = getStoryCanvasCoords(clientX, clientY);
+      const cur = storyAdjust[storyDragState.side];
+      cur.dx = Math.max(-180, Math.min(180, Math.round(storyDragState.origDx + (pt.x - storyDragState.startX))));
+      cur.dy = Math.max(-180, Math.min(180, Math.round(storyDragState.origDy + (pt.y - storyDragState.startY))));
+      syncStoryAdjustUI();
+      scheduleStoryRender();
+    };
+    const endStoryDrag = () => {
+      if (!storyDragState) return;
+      storyDragState = null;
+      $("storyCanvas").classList.remove("dragging");
+    };
+    $("storyCanvas").addEventListener("mousedown", (e) => { startStoryDrag(e.clientX, e.clientY); e.preventDefault(); });
+    window.addEventListener("mousemove", (e) => moveStoryDrag(e.clientX, e.clientY));
+    window.addEventListener("mouseup", endStoryDrag);
+    $("storyCanvas").addEventListener("touchstart", (e) => {
+      if (e.touches[0]) { startStoryDrag(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }
+    }, { passive: false });
+    window.addEventListener("touchmove", (e) => {
+      if (storyDragState && e.touches[0]) { moveStoryDrag(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }
+    }, { passive: false });
+    window.addEventListener("touchend", endStoryDrag);
+    syncStoryAdjustUI();
 
     function downloadStoryCanvas(ext, mime) {
       const canvas = $("storyCanvas");
