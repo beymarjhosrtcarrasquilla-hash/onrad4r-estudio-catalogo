@@ -1,0 +1,29 @@
+{
+  "updated_at": "2026-11-26T20:19:32",
+  "items": {
+    "artes/arte_26_sakura_flores.png": {
+      "status": "Listo Pliego DTF",
+      "enabled_app2": true,
+      "notes": "Drop 26 Sakura aprobado CEO",
+      "dtf_width_cm": 30.0
+    },
+    "artes/arte_27_koi_espalda.png": {
+      "status": "Listo Pliego DTF",
+      "enabled_app2": true,
+      "notes": "Drop 27 Koi espalda aprobado",
+      "dtf_width_cm": 29.5
+    },
+    "artes/pecho_24_rei_ayanami.png": {
+      "status": "Listo Pliego DTF",
+      "enabled_app2": true,
+      "notes": "Drop 24 Rei pecho",
+      "dtf_width_cm": 9.0
+    },
+    "artes/arte_24_rei_ayanami.png": {
+      "status": "Aprobado Catálogo",
+      "enabled_app2": true,
+      "notes": "Drop 24 Rei espalda catalogo App 2",
+      "dtf_width_cm": 30.0
+    }
+  }
+}

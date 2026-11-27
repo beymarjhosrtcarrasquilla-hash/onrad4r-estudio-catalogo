@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#090a0d"/>
+  <circle cx="256" cy="256" r="184" fill="none" stroke="#222630" stroke-width="8"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#00e5a0" stroke-width="6" stroke-dasharray="14 10"/>
+  <circle cx="256" cy="256" r="56" fill="none" stroke="#f2f4f8" stroke-width="6"/>
+  <line x1="256" y1="56" x2="256" y2="456" stroke="#222630" stroke-width="4"/>
+  <line x1="56" y1="256" x2="456" y2="256" stroke="#222630" stroke-width="4"/>
+  <circle cx="318" cy="194" r="12" fill="#00e5a0"/>
+  <text x="256" y="476" text-anchor="middle" fill="#f2f4f8" font-family="Arial, sans-serif" font-weight="700" font-size="34" letter-spacing="6">ON RAD4R</text>
+</svg>

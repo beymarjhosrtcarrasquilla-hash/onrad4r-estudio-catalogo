@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090a0d" />
+  <title>ON RAD4R — Estudio Interno (OOO DARK)</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --bg: #090a0d;
+      --panel: #111319;
+      --panel-2: #171a22;
+      --border: #252a36;
+      --text: #eef1f6;
+      --muted: #8b95a7;
+      --accent: #00e5a0;
+      --accent-dim: rgba(0, 229, 160, 0.14);
+      --warn: #ffb020;
+      --danger: #ff4d6d;
+      --info: #4da3ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(9, 10, 13, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-badge {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: #0d0f14;
+      display: grid; place-items: center;
+    }
+    .brand h1 { margin: 0; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; }
+    .brand span { display: block; font-size: 11px; color: var(--accent); letter-spacing: 0.12em; }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab-btn {
+      background: var(--panel); color: var(--muted); border: 1px solid var(--border);
+      padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.15s;
+    }
+    .tab-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+    .stats-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); }
+    .pill { background: var(--panel); border: 1px solid var(--border); padding: 5px 10px; border-radius: 999px; color: var(--text); }
+    .pill strong { color: var(--accent); }
+    .pill-warn strong { color: var(--warn); }
+    main { max-width: 1460px; margin: 0 auto; padding: 18px 20px 60px; }
+    .module { display: none; }
+    .module.active { display: block; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .toolbar-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    input[type="text"], input[type="number"], select, textarea {
+      background: var(--bg); color: var(--text); border: 1px solid var(--border);
+      border-radius: 7px; padding: 7px 10px; font-size: 13px; font-family: inherit;
+    }
+    button.btn {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 7px; padding: 8px 13px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    button.btn:hover { border-color: var(--muted); }
+    button.btn-primary { background: var(--accent); color: #06110d; border-color: var(--accent); }
+    button.btn-warn { background: rgba(255, 176, 32, 0.16); color: var(--warn); border-color: var(--warn); }
+
+    .grid-vault { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .card-thumb {
+      height: 200px; background: radial-gradient(circle at center, #1f232e 0%, #0d0e13 100%);
+      display: grid; place-items: center; padding: 10px; position: relative; border-bottom: 1px solid var(--border);
+    }
+    .card-thumb img { max-width: 100%; max-height: 180px; object-fit: contain; }
+    .badge-drop {
+      position: absolute; top: 8px; left: 8px; background: rgba(9, 10, 13, 0.85);
+      border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--accent);
+    }
+    .badge-cat {
+      position: absolute; top: 8px; right: 8px; background: rgba(9, 10, 13, 0.85);
+      border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--muted); text-transform: uppercase;
+    }
+    .card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .card-title { font-size: 14px; font-weight: 700; margin: 0; }
+    .meta-row { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+    .switch-row {
+      display: flex; align-items: center; justify-content: space-between; font-size: 12px;
+      background: var(--bg); padding: 6px 9px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    .card-actions { display: flex; gap: 6px; margin-top: auto; }
+    .card-actions button { flex: 1; font-size: 12px; padding: 6px 8px; }
+
+    .fitter-layout, .dtf-layout { display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
+    @media (max-width: 960px) { .fitter-layout, .dtf-layout { grid-template-columns: 1fr; } }
+    .panel-box {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .control-row { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+    .stage-wrap {
+      background: #060709; border: 1px solid var(--border); border-radius: 10px;
+      display: grid; place-items: center; padding: 12px; min-height: 620px;
+    }
+    .garment-stage {
+      position: relative; width: 450px; max-width: 100%; aspect-ratio: 9 / 16;
+      overflow: hidden; border-radius: 8px; border: 1px solid var(--border); background: #0e1015;
+      user-select: none; touch-action: none;
+    }
+    .garment-stage img.base-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .garment-stage img.art-overlay {
+      position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%) scale(1);
+      max-width: 65%; cursor: grab; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+    }
+
+    .dtf-piece-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .dtf-piece-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; font-size: 12px;
+    }
+    .dtf-piece-item img { width: 36px; height: 36px; object-fit: contain; background: #161922; border-radius: 4px; }
+    .dtf-board-wrap { background: #07080b; border: 1px solid var(--border); border-radius: 10px; padding: 14px; overflow: auto; }
+    .dtf-sheet {
+      position: relative; width: 580px; min-height: 360px; margin: 0 auto; background-color: #13161e;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 50px 50px; border: 2px solid var(--accent); border-radius: 4px;
+    }
+    .dtf-placed {
+      position: absolute; border: 1px dashed var(--accent); background: rgba(0, 229, 160, 0.06);
+      display: grid; place-items: center; overflow: hidden;
+    }
+    .dtf-placed img { width: 100%; height: 100%; object-fit: contain; }
+    .dtf-placed .dtf-tag {
+      position: absolute; top: 2px; left: 2px; background: rgba(9, 10, 13, 0.85);
+      color: var(--accent); font-size: 10px; padding: 1px 4px; border-radius: 3px;
+    }
+    .log-box {
+      background: #06070a; border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+      font-family: Consolas, monospace; font-size: 12px; color: #b7c4d6; white-space: pre-wrap; max-height: 180px; overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-badge">
+        <img src="./icon.svg" alt="ON RAD4R" width="28" height="28" />
+      </div>
+      <div>
+        <h1>ON RAD4R — ESTUDIO INTERNO</h1>
+        <span>OOO DARK // BÓVEDA · PROBADOR REAL · ARMADOR DTF 58 CM</span>
+      </div>
+    </div>
+    <nav>
+      <button class="tab-btn active" data-tab="vault">1. Bóveda de Artes</button>
+      <button class="tab-btn" data-tab="fitter">2. Probador en Prenda</button>
+      <button class="tab-btn" data-tab="dtf">3. Armador Pliego DTF</button>
+    </nav>
+    <div class="stats-bar" id="statsBar">
+      <span class="pill">Cargando inventario...</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="tab-vault" class="module active">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <input type="text" id="vaultSearch" placeholder="Buscar drop, arte o pieza..." />
+          <select id="vaultStatusFilter">
+            <option value="ALL">Estado: Todos</option>
+            <option value="Borrador">Borrador</option>
+            <option value="Aprobado Catálogo">Aprobado Catálogo</option>
+            <option value="Listo Pliego DTF">Listo Pliego DTF</option>
+          </select>
+          <select id="vaultSourceFilter">
+            <option value="ALL">Origen: Artes + Logos</option>
+            <option value="artes_limpios">Solo artes_limpios</option>
+            <option value="logos_marca">Solo logos_marca</option>
+          </select>
+        </div>
+        <div class="toolbar-group">
+          <button class="btn" id="btnReloadInv">Recargar</button>
+          <button class="btn" id="btnImportApp2">Importar JSON</button>
+          <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;" />
+          <button class="btn btn-primary" id="btnExportApp2">Exportar catalogo_app2.json</button>
+        </div>
+      </div>
+      <div class="grid-vault" id="vaultGrid"></div>
+    </section>
+
+    <section id="tab-fitter" class="module">
+      <div class="fitter-layout">
+        <div class="panel-box">
+          <h3 style="margin:0;font-size:15px;">Configuración de Prenda Real</h3>
+          <div class="control-row">
+            <label>Base de Camiseta Real (assets/bases/)</label>
+            <select id="fitterBaseSelect"></select>
+          </div>
+          <div class="control-row">
+            <label>Arte Limpio / Logo (assets/artes/)</label>
+            <select id="fitterArtSelect"></select>
+          </div>
+          <div class="control-row">
+            <label>Presets rápidos de zona</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn" onclick="applyFitterPreset('espalda')">Espalda Oversize</button>
+              <button class="btn" onclick="applyFitterPreset('frente')">Frente Centro</button>
+              <button class="btn" onclick="applyFitterPreset('pecho')">Pecho Izq.</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <label>Escala: <strong id="lblScale">48%</strong></label>
+            <input type="range" id="fitterScale" min="10" max="90" value="48" />
+          </div>
+          <div class="control-row">
+            <label>Posición X: <strong id="lblPosX">50%</strong></label>
+            <input type="range" id="fitterX" min="15" max="85" value="50" />
+          </div>
+          <div class="control-row">
+            <label>Posición Y: <strong id="lblPosY">45%</strong></label>
+            <input type="range" id="fitterY" min="18" max="82" value="45" />
+          </div>
+          <div class="control-row">
+            <label>Opacidad tinta: <strong id="lblOpacity">95%</strong></label>
+            <input type="range" id="fitterOpacity" min="50" max="100" value="95" />
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);width:100%;" />
+          <div class="control-row">
+            <label>Render 3D Real (Servidor Local 127.0.0.1:8787)</label>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="renderDropNum" placeholder="Drop ej. 26" style="width:100px;" />
+              <select id="renderLayout">
+                <option value="classic">Classic</option>
+                <option value="dual_story">Dual Story</option>
+              </select>
+            </div>
+          </div>
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="renderSendTg" /> Enviar resultado a Telegram
+          </label>
+          <button class="btn btn-primary" id="btnRunRender3D">Lanzar Render 3D Real</button>
+          <div class="log-box" id="fitterLog">Listo para probar prendas reales (modo autónomo activo).</div>
+        </div>
+
+        <div class="stage-wrap">
+          <div class="garment-stage" id="garmentStage">
+            <img id="stageBaseImg" class="base-img" alt="Base prenda" />
+            <img id="stageArtImg" class="art-overlay" alt="Arte limpio" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-dtf" class="module">
+      <div class="dtf-layout">
+        <div class="panel-box">
+          <h3 style="margin:0;font-size:15px;">Piezas "Listo Pliego DTF"</h3>
+          <div style="font-size:12px;color:var(--muted);">
+            Ancho fijo: <strong style="color:var(--text);">58 cm</strong> @ 300 DPI (6850 px) · Separación mínima: <strong style="color:var(--accent);">1.5 cm (177 px)</strong>
+          </div>
+          <div class="dtf-piece-list" id="dtfPieceList"></div>
+          <div class="control-row">
+            <label>Prefijo del pliego</label>
+            <input type="text" id="dtfPrefix" value="pliego_estudio_onrad4r" />
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn" id="btnDtfPreview">Calcular Empaquetado</button>
+            <button class="btn btn-primary" id="btnExportDtfMission">Exportar mision_pliego_dtf.txt</button>
+            <button class="btn" id="btnDtfGenerate">Generar en Servidor Local</button>
+          </div>
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="dtfSendTg" checked /> Enviar plano acotado a Telegram (si local activo)
+          </label>
+          <hr style="border:none;border-top:1px solid var(--border);width:100%;" />
+          <div class="control-row">
+            <label>Métricas del Pliego</label>
+            <div id="dtfMetrics" class="pill" style="border-radius:8px;padding:8px 10px;">
+              Sin calcular aún.
+            </div>
+          </div>
+          <div class="log-box" id="dtfLog">Marca artes como "Listo Pliego DTF" en la Bóveda para armar el pliego.</div>
+        </div>
+
+        <div class="dtf-board-wrap">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--muted);">
+            <span>MESA VISUAL A ESCALA (10 px = 1 cm · 58 cm de ancho)</span>
+            <span id="dtfOutputLink"></span>
+          </div>
+          <div class="dtf-sheet" id="dtfSheet"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+
+    const STORAGE_KEY = "onrad4r_estudio_state_v1";
+    const LOCAL_API = "http://127.0.0.1:8787";
+    const DPI = 300;
+    const PX_PER_CM = DPI / 2.54;
+    const DTF_WIDTH_CM = 58.0;
+    const DTF_WIDTH_PX = Math.round(DTF_WIDTH_CM * PX_PER_CM);
+    const DTF_GAP_CM = 1.5;
+    const DTF_GAP_PX = Math.round(DTF_GAP_CM * PX_PER_CM);
+
+    let INVENTORY = null;
+    let LOCAL_ONLINE = false;
+    let LAST_DTF_LAYOUT = null;
+    const $ = (id) => document.getElementById(id);
+
+    function pxToCm(px) { return Math.round((px / PX_PER_CM) * 100) / 100; }
+    function cmToPx(cm) { return Math.max(1, Math.round(cm * PX_PER_CM)); }
+
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && parsed.items) return parsed;
+        }
+      } catch (_) {}
+      return { updated_at: null, items: {} };
+    }
+
+    function saveLocalState(itemsMap) {
+      const state = { updated_at: new Date().toISOString().slice(0, 19), items: itemsMap };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return state;
+    }
+
+    function downloadText(filename, content, mime = "application/json;charset=utf-8") {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function checkLocalServer() {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1200);
+      try {
+        const r = await fetch(`${LOCAL_API}/api/inventory`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (r.ok) {
+          LOCAL_ONLINE = true;
+          return await r.json();
+        }
+      } catch (_) {
+        clearTimeout(timer);
+      }
+      LOCAL_ONLINE = false;
+      return null;
+    }
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".module").forEach((m) => m.classList.remove("active"));
+        btn.classList.add("active");
+        $("tab-" + btn.dataset.tab).classList.add("active");
+        if (btn.dataset.tab === "dtf") {
+          renderDtfPieces();
+          computeDtfPreview();
+        }
+      });
+    });
+
+    function applyStateToInventory(inv) {
+      const saved = loadLocalState();
+      const savedItems = saved.items || {};
+      const stateToPersist = {};
+      [...(inv.artes || []), ...(inv.logos || [])].forEach((d) => {
+        if (savedItems[d.id]) {
+          Object.assign(d, savedItems[d.id]);
+        }
+        stateToPersist[d.id] = {
+          status: d.status,
+          enabled_app2: !!d.enabled_app2,
+          notes: d.notes || "",
+          dtf_width_cm: Number(d.dtf_width_cm) || 30,
+        };
+      });
+      if (!Object.keys(savedItems).length) {
+        saveLocalState(stateToPersist);
+      }
+      recomputeCounts(inv);
+    }
+
+    function recomputeCounts(inv) {
+      const designs = [...(inv.artes || []), ...(inv.logos || [])];
+      inv.counts = {
+        total_artes: (inv.artes || []).length,
+        total_logos: (inv.logos || []).length,
+        total_bases: (inv.bases || []).length,
+        app2_enabled: designs.filter((d) => d.enabled_app2).length,
+        dtf_ready: designs.filter((d) => d.status === "Listo Pliego DTF").length,
+        approved: designs.filter((d) => d.status === "Aprobado Catálogo").length,
+      };
+    }
+
+    async function loadInventory() {
+      const res = await fetch("./inventario.json");
+      INVENTORY = await res.json();
+      await checkLocalServer();
+      applyStateToInventory(INVENTORY);
+      updateStatsBar();
+      renderVault();
+      populateFitterSelects();
+      renderDtfPieces();
+    }
+
+    function updateStatsBar() {
+      const c = INVENTORY.counts;
+      const modePill = LOCAL_ONLINE
+        ? `<span class="pill">Sync: <strong>Local 8787</strong></span>`
+        : `<span class="pill pill-warn">Modo: <strong>PWA Autónoma</strong></span>`;
+      $("statsBar").innerHTML = `
+        ${modePill}
+        <span class="pill">Artes: <strong>${c.total_artes}</strong></span>
+        <span class="pill">Logos: <strong>${c.total_logos}</strong></span>
+        <span class="pill">Bases: <strong>${c.total_bases}</strong></span>
+        <span class="pill">App 2: <strong>${c.app2_enabled}</strong></span>
+        <span class="pill">DTF Listos: <strong>${c.dtf_ready}</strong></span>
+      `;
+    }
+
+    function allDesigns() {
+      return [...(INVENTORY?.artes || []), ...(INVENTORY?.logos || [])];
+    }
+
+    function persistCurrentDesign(d) {
+      const state = loadLocalState();
+      state.items[d.id] = {
+        status: d.status,
+        enabled_app2: !!d.enabled_app2,
+        notes: d.notes || "",
+        dtf_width_cm: Number(d.dtf_width_cm) || 30,
+      };
+      saveLocalState(state.items);
+      recomputeCounts(INVENTORY);
+      updateStatsBar();
+    }
+
+    function renderVault() {
+      const q = $("vaultSearch").value.trim().toLowerCase();
+      const stFilter = $("vaultStatusFilter").value;
+      const srcFilter = $("vaultSourceFilter").value;
+      const items = allDesigns().filter((d) => {
+        if (stFilter !== "ALL" && d.status !== stFilter) return false;
+        if (srcFilter !== "ALL" && d.source !== srcFilter) return false;
+        if (q && !`${d.title} ${d.drop} ${d.filename} ${d.notes}`.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const grid = $("vaultGrid");
+      grid.innerHTML = "";
+      items.forEach((d) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-thumb">
+            <span class="badge-drop">${d.drop}</span>
+            <span class="badge-cat">${d.category}</span>
+            <img src="${d.url}" loading="lazy" alt="${d.title}" />
+          </div>
+          <div class="card-body">
+            <h4 class="card-title">${d.title}</h4>
+            <div class="meta-row">
+              <span>${d.width_cm} × ${d.height_cm} cm</span>
+              <span>${d.width_px} × ${d.height_px} px @ 300 DPI</span>
+            </div>
+            <div class="meta-row">
+              <select class="st-sel" style="flex:1;">
+                <option value="Borrador" ${d.status === "Borrador" ? "selected" : ""}>Borrador</option>
+                <option value="Aprobado Catálogo" ${d.status === "Aprobado Catálogo" ? "selected" : ""}>Aprobado Catálogo</option>
+                <option value="Listo Pliego DTF" ${d.status === "Listo Pliego DTF" ? "selected" : ""}>Listo Pliego DTF</option>
+              </select>
+              <input type="number" class="dtf-w-inp" step="0.5" min="3" max="54" value="${d.dtf_width_cm}" title="Ancho DTF en cm" style="width:74px;" />
+            </div>
+            <label class="switch-row">
+              <span>Habilitar en App 2 Pública</span>
+              <input type="checkbox" class="app2-chk" ${d.enabled_app2 ? "checked" : ""} />
+            </label>
+            <input type="text" class="notes-inp" placeholder="Notas de curaduría..." value="${(d.notes || "").replace(/"/g, "&quot;")}" />
+            <div class="card-actions">
+              <button class="btn btn-try">Probar en Prenda</button>
+              <button class="btn btn-primary btn-save">Guardar</button>
+            </div>
+          </div>
+        `;
+
+        const saveItem = async () => {
+          const payload = {
+            id: d.id,
+            status: card.querySelector(".st-sel").value,
+            enabled_app2: card.querySelector(".app2-chk").checked,
+            notes: card.querySelector(".notes-inp").value,
+            dtf_width_cm: parseFloat(card.querySelector(".dtf-w-inp").value) || d.dtf_width_cm,
+          };
+          Object.assign(d, payload);
+          persistCurrentDesign(d);
+
+          if (LOCAL_ONLINE) {
+            fetch(`${LOCAL_API}/api/catalog/state`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }).catch(() => {});
+          }
+        };
+
+        card.querySelector(".btn-save").addEventListener("click", saveItem);
+        card.querySelector(".st-sel").addEventListener("change", saveItem);
+        card.querySelector(".app2-chk").addEventListener("change", saveItem);
+        card.querySelector(".btn-try").addEventListener("click", () => {
+          $("fitterArtSelect").value = d.id;
+          updateFitterStage();
+          if (d.drop_num) $("renderDropNum").value = d.drop_num;
+          document.querySelector('[data-tab="fitter"]').click();
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    $("vaultSearch").addEventListener("input", renderVault);
+    $("vaultStatusFilter").addEventListener("change", renderVault);
+    $("vaultSourceFilter").addEventListener("change", renderVault);
+    $("btnReloadInv").addEventListener("click", loadInventory);
+
+    function buildCatalogApp2() {
+      const approved = allDesigns()
+        .filter((item) => item.enabled_app2)
+        .map((item) => ({
+          id: item.id,
+          title: item.title,
+          drop: item.drop,
+          drop_num: item.drop_num,
+          category: item.category,
+          source: item.source,
+          filename: item.filename,
+          width_px: item.width_px,
+          height_px: item.height_px,
+          width_cm: item.width_cm,
+          height_cm: item.height_cm,
+          dpi: DPI,
+          status: item.status,
+          notes: item.notes,
+          dtf_width_cm: item.dtf_width_cm,
+          promo_render: item.promo_render || null,
+        }));
+      return {
+        brand: "ON RAD4R",
+        aesthetic: "OOO DARK",
+        generated_at: new Date().toISOString().slice(0, 19),
+        total_items: approved.length,
+        items: approved,
+      };
+    }
+
+    $("btnExportApp2").addEventListener("click", async () => {
+      const catalog = buildCatalogApp2();
+      downloadText("catalogo_app2.json", JSON.stringify(catalog, null, 2));
+      if (LOCAL_ONLINE) {
+        fetch(`${LOCAL_API}/api/catalog/export`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        }).catch(() => {});
+      }
+      alert(`Exportado catalogo_app2.json con ${catalog.total_items} diseños aprobados.`);
+    });
+
+    $("btnImportApp2").addEventListener("click", () => $("importFileInput").click());
+    $("importFileInput").addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
+        let importedCount = 0;
+        if (Array.isArray(data.items)) {
+          data.items.forEach((it) => {
+            if (it.id && byId[it.id]) {
+              byId[it.id].status = it.status || "Aprobado Catálogo";
+              byId[it.id].enabled_app2 = true;
+              if (it.notes !== undefined) byId[it.id].notes = it.notes;
+              if (it.dtf_width_cm) byId[it.id].dtf_width_cm = Number(it.dtf_width_cm);
+              persistCurrentDesign(byId[it.id]);
+              importedCount++;
+            }
+          });
+        } else if (data.items && typeof data.items === "object") {
+          Object.entries(data.items).forEach(([id, st]) => {
+            if (byId[id]) {
+              Object.assign(byId[id], st);
+              persistCurrentDesign(byId[id]);
+              importedCount++;
+            }
+          });
+        }
+        renderVault();
+        renderDtfPieces();
+        alert(`Importados ${importedCount} diseños al estudio local.`);
+      } catch (err) {
+        alert("JSON inválido: " + err.message);
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    // Módulo 2: Probador
+    function populateFitterSelects() {
+      const baseSel = $("fitterBaseSelect");
+      const artSel = $("fitterArtSelect");
+      const prevBase = baseSel.value;
+      const prevArt = artSel.value;
+
+      baseSel.innerHTML = INVENTORY.bases
+        .map((b) => `<option value="${b.url}">${b.label} (${b.fabric})</option>`)
+        .join("");
+      artSel.innerHTML = allDesigns()
+        .map((d) => `<option value="${d.id}">${d.drop} — ${d.title} (${d.width_cm}×${d.height_cm} cm)</option>`)
+        .join("");
+
+      if (prevBase) baseSel.value = prevBase;
+      if (prevArt) artSel.value = prevArt;
+      updateFitterStage();
+    }
+
+    function updateFitterStage() {
+      $("stageBaseImg").src = $("fitterBaseSelect").value || "";
+      const artId = $("fitterArtSelect").value;
+      const art = allDesigns().find((d) => d.id === artId);
+      const artImg = $("stageArtImg");
+      if (art) {
+        artImg.src = art.url;
+        if (art.drop_num) $("renderDropNum").value = art.drop_num;
+      }
+      const scale = $("fitterScale").value;
+      const x = $("fitterX").value;
+      const y = $("fitterY").value;
+      const op = $("fitterOpacity").value;
+      $("lblScale").textContent = scale + "%";
+      $("lblPosX").textContent = x + "%";
+      $("lblPosY").textContent = y + "%";
+      $("lblOpacity").textContent = op + "%";
+      artImg.style.left = x + "%";
+      artImg.style.top = y + "%";
+      artImg.style.maxWidth = scale + "%";
+      artImg.style.opacity = (op / 100).toFixed(2);
+    }
+
+    window.applyFitterPreset = (preset) => {
+      if (preset === "espalda") {
+        $("fitterScale").value = 46; $("fitterX").value = 50; $("fitterY").value = 48;
+      } else if (preset === "frente") {
+        $("fitterScale").value = 34; $("fitterX").value = 50; $("fitterY").value = 42;
+      } else if (preset === "pecho") {
+        $("fitterScale").value = 16; $("fitterX").value = 60; $("fitterY").value = 36;
+      }
+      updateFitterStage();
+    };
+
+    ["fitterBaseSelect", "fitterArtSelect", "fitterScale", "fitterX", "fitterY", "fitterOpacity"].forEach((id) => {
+      $(id).addEventListener("input", updateFitterStage);
+    });
+
+    // Drag mouse + touch en visor
+    let dragging = false;
+    const moveStageTo = (clientX, clientY) => {
+      const rect = $("garmentStage").getBoundingClientRect();
+      const px = Math.max(15, Math.min(85, Math.round(((clientX - rect.left) / rect.width) * 100)));
+      const py = Math.max(18, Math.min(82, Math.round(((clientY - rect.top) / rect.height) * 100)));
+      $("fitterX").value = px;
+      $("fitterY").value = py;
+      updateFitterStage();
+    };
+    $("stageArtImg").addEventListener("mousedown", (e) => { dragging = true; e.preventDefault(); });
+    window.addEventListener("mouseup", () => { dragging = false; });
+    $("garmentStage").addEventListener("mousemove", (e) => { if (dragging) moveStageTo(e.clientX, e.clientY); });
+    $("stageArtImg").addEventListener("touchstart", (e) => { dragging = true; e.preventDefault(); }, { passive: false });
+    window.addEventListener("touchend", () => { dragging = false; });
+    $("garmentStage").addEventListener("touchmove", (e) => {
+      if (!dragging || !e.touches[0]) return;
+      moveStageTo(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    $("btnRunRender3D").addEventListener("click", async () => {
+      const drop_num = $("renderDropNum").value.trim();
+      if (!drop_num) { $("fitterLog").textContent = "Ingresa un número de Drop (ej. 26)."; return; }
+      if (!LOCAL_ONLINE) {
+        $("fitterLog").textContent = "Servidor local (127.0.0.1:8787) no detectado. Usa el Probador Real interactivo en esta PWA o inicia servidor_estudio.py en tu PC para render 3D.";
+        return;
+      }
+      $("fitterLog").textContent = "Ejecutando render_prendas_3d.py síncronamente...";
+      const r = await fetch(`${LOCAL_API}/api/render3d`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          drop_num,
+          layout: $("renderLayout").value,
+          send_telegram: $("renderSendTg").checked,
+        }),
+      });
+      const data = await r.json();
+      $("fitterLog").textContent = JSON.stringify(data, null, 2);
+    });
+
+    // Módulo 3: DTF autónomo (Shelf / Guillotine @ 300 DPI)
+    function packDtfPiecesLocal(pieces) {
+      const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
+      const resolved = pieces.map((req, idx) => {
+        const d = byId[req.id];
+        const origW = d.width_px;
+        const origH = d.height_px;
+        const targetWcm = Math.max(2.0, Math.min(DTF_WIDTH_CM - 2.0, Number(req.width_cm || pxToCm(origW))));
+        let w_px = cmToPx(targetWcm);
+        let h_px = Math.max(1, Math.round(origH * (w_px / origW)));
+        let rotated = false;
+        if (h_px > w_px && h_px <= (DTF_WIDTH_PX - 2 * DTF_GAP_PX)) {
+          [w_px, h_px] = [h_px, w_px];
+          rotated = true;
+        }
+        return { seq: idx + 1, id: d.id, filename: d.filename, title: d.title, w_px, h_px, rotated };
+      });
+
+      resolved.sort((a, b) => (b.h_px - a.h_px) || (b.w_px - a.w_px));
+
+      const placed = [];
+      const margin = DTF_GAP_PX;
+      let cursorX = margin;
+      let cursorY = margin;
+      let shelfH = 0;
+
+      for (const piece of resolved) {
+        if (cursorX + piece.w_px + margin > DTF_WIDTH_PX) {
+          cursorX = margin;
+          cursorY += shelfH + DTF_GAP_PX;
+          shelfH = 0;
+        }
+        placed.push({
+          ...piece,
+          x_px: cursorX,
+          y_px: cursorY,
+          x_cm: pxToCm(cursorX),
+          y_cm: pxToCm(cursorY),
+          w_cm: pxToCm(piece.w_px),
+          h_cm: pxToCm(piece.h_px),
+        });
+        cursorX += piece.w_px + DTF_GAP_PX;
+        if (piece.h_px > shelfH) shelfH = piece.h_px;
+      }
+
+      const total_height_px = placed.length ? (cursorY + shelfH + margin) : (2 * margin);
+      const total_height_cm = pxToCm(total_height_px);
+      const usedArea = placed.reduce((acc, p) => acc + (p.w_px * p.h_px), 0);
+      const sheetArea = DTF_WIDTH_PX * (total_height_px || 1);
+      const utilization_pct = Math.round((usedArea / sheetArea) * 10000) / 100;
+
+      return {
+        ok: true,
+        sheet_width_cm: DTF_WIDTH_CM,
+        sheet_width_px: DTF_WIDTH_PX,
+        total_height_cm,
+        total_height_px,
+        gap_cm: DTF_GAP_CM,
+        gap_px: DTF_GAP_PX,
+        dpi: DPI,
+        utilization_pct,
+        pieces_count: placed.length,
+        placed,
+      };
+    }
+
+    function renderDtfPieces() {
+      const list = $("dtfPieceList");
+      const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
+      if (!ready.length) {
+        list.innerHTML = `<div style="color:var(--muted);font-size:12px;">No hay artes marcados como "Listo Pliego DTF".</div>`;
+        return;
+      }
+      list.innerHTML = ready.map((d) => `
+        <div class="dtf-piece-item">
+          <img src="${d.url}" alt="${d.title}" />
+          <div style="flex:1;">
+            <div style="font-weight:600;">${d.title}</div>
+            <div style="color:var(--muted);">${d.drop} · Ancho DTF: ${d.dtf_width_cm} cm</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function computeDtfPreview() {
+      const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
+      const sheet = $("dtfSheet");
+      if (!ready.length) {
+        sheet.innerHTML = "";
+        LAST_DTF_LAYOUT = null;
+        $("dtfMetrics").textContent = "Sin piezas marcadas como Listo Pliego DTF.";
+        return;
+      }
+      const pieces = ready.map((d) => ({ id: d.id, title: d.title, width_cm: d.dtf_width_cm }));
+      const data = packDtfPiecesLocal(pieces);
+      LAST_DTF_LAYOUT = data;
+
+      const scale = 10;
+      sheet.style.height = Math.max(300, Math.round(data.total_height_cm * scale)) + "px";
+      sheet.innerHTML = "";
+      const byId = Object.fromEntries(allDesigns().map((d) => [d.id, d]));
+      data.placed.forEach((p) => {
+        const div = document.createElement("div");
+        div.className = "dtf-placed";
+        div.style.left = (p.x_cm * scale) + "px";
+        div.style.top = (p.y_cm * scale) + "px";
+        div.style.width = (p.w_cm * scale) + "px";
+        div.style.height = (p.h_cm * scale) + "px";
+        const src = byId[p.id]?.url || "";
+        div.innerHTML = `
+          <img src="${src}" style="${p.rotated ? "transform:rotate(-90deg);" : ""}" alt="${p.title}" />
+          <span class="dtf-tag">#${p.seq} ${p.w_cm}×${p.h_cm}cm</span>
+        `;
+        sheet.appendChild(div);
+      });
+      $("dtfMetrics").innerHTML = `Largo total: <strong>${data.total_height_cm} cm</strong> · Aprovechamiento: <strong>${data.utilization_pct}%</strong> · Piezas: <strong>${data.pieces_count}</strong>`;
+    }
+
+    $("btnDtfPreview").addEventListener("click", computeDtfPreview);
+
+    $("btnExportDtfMission").addEventListener("click", () => {
+      computeDtfPreview();
+      if (!LAST_DTF_LAYOUT || !LAST_DTF_LAYOUT.placed.length) {
+        $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF'.";
+        return;
+      }
+      const prefix = $("dtfPrefix").value.trim() || "pliego_estudio_onrad4r";
+      const lines = [
+        "MISIÓN: Armar Pliego DTF Final ON RAD4R (300 DPI)",
+        `PREFIJO: ${prefix}`,
+        `GENERADO: ${new Date().toISOString()}`,
+        `ANCHO_PLIEGO_CM: ${LAST_DTF_LAYOUT.sheet_width_cm}`,
+        `LARGO_TOTAL_CM: ${LAST_DTF_LAYOUT.total_height_cm}`,
+        `SEPARACION_MIN_CM: ${LAST_DTF_LAYOUT.gap_cm}`,
+        `APROVECHAMIENTO_PCT: ${LAST_DTF_LAYOUT.utilization_pct}`,
+        `TOTAL_PIEZAS: ${LAST_DTF_LAYOUT.pieces_count}`,
+        "",
+        "PIEZAS_EMPAQUETADAS:",
+        ...LAST_DTF_LAYOUT.placed.map((p) =>
+          `- #${p.seq} | ${p.id} | ${p.w_cm}x${p.h_cm} cm | pos=(${p.x_cm}, ${p.y_cm}) cm | rotado=${p.rotated}`
+        ),
+      ];
+      downloadText("mision_pliego_dtf.txt", lines.join("\n"), "text/plain;charset=utf-8");
+      $("dtfLog").textContent = "Exportado mision_pliego_dtf.txt con " + LAST_DTF_LAYOUT.pieces_count + " piezas.";
+    });
+
+    $("btnDtfGenerate").addEventListener("click", async () => {
+      const ready = allDesigns().filter((d) => d.status === "Listo Pliego DTF");
+      if (!ready.length) { $("dtfLog").textContent = "Marca al menos 1 arte como 'Listo Pliego DTF'."; return; }
+      if (!LOCAL_ONLINE) {
+        $("dtfLog").textContent = "Servidor local (127.0.0.1:8787) no activo. Usa 'Exportar mision_pliego_dtf.txt' para descargar la orden de pliego.";
+        return;
+      }
+      $("dtfLog").textContent = "Generando pliego 300 DPI en salidas_dtf/ ...";
+      const r = await fetch(`${LOCAL_API}/api/dtf/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prefix: $("dtfPrefix").value.trim() || "pliego_estudio_onrad4r",
+          pieces: ready.map((d) => ({ id: d.id, title: d.title, width_cm: d.dtf_width_cm })),
+          send_telegram: $("dtfSendTg").checked,
+        }),
+      });
+      const data = await r.json();
+      $("dtfLog").textContent = JSON.stringify(data, null, 2);
+      if (data.ok && data.report?.outputs?.jpg_url) {
+        $("dtfOutputLink").innerHTML = `<a href="${LOCAL_API}${data.report.outputs.jpg_url}" target="_blank" style="color:var(--accent);">Ver Plano Acotado JPG</a>`;
+      }
+    });
+
+    loadInventory();
+  </script>
+</body>
+</html>

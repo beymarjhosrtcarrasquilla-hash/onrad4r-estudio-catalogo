@@ -1,0 +1,19 @@
+{
+  "name": "ON RAD4R — Estudio Interno",
+  "short_name": "ON RAD4R",
+  "description": "Estudio de Diseños, Probador Real y Armador de Pliegos DTF (OOO DARK)",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090a0d",
+  "theme_color": "#090a0d",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
