@@ -140,14 +140,15 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(0, 229, 160, 0.25);
     }
-    .side-switcher { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .side-switcher { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .side-btn {
-      background: var(--bg); color: var(--muted); border: 1px solid var(--border);
-      border-radius: 7px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
-      letter-spacing: 0.04em; transition: 0.15s;
+      background: var(--bg); color: var(--muted); border: 2px solid var(--border);
+      border-radius: 9px; padding: 12px 10px; font-size: 13px; font-weight: 800; cursor: pointer;
+      letter-spacing: 0.03em; transition: 0.15s; text-align: center;
     }
     .side-btn.active {
       background: var(--accent-dim); color: var(--accent); border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 229, 160, 0.18);
     }
     .btn-hero {
       width: 100%; padding: 11px 14px; font-size: 13px; font-weight: 800; letter-spacing: 0.03em;
@@ -292,8 +293,8 @@
           <div class="control-row">
             <label>Lado Activo de la Prenda</label>
             <div class="side-switcher">
-              <button type="button" class="side-btn active" id="btnSideFront" data-side="front">CAMISETA FRENTE (<span id="frontLayersBadge">0</span>)</button>
-              <button type="button" class="side-btn" id="btnSideBack" data-side="back">CAMISETA ESPALDA (<span id="backLayersBadge">0</span>)</button>
+              <button type="button" class="side-btn active" id="btnSideFront" data-side="front">👕 DISEÑAR FRENTE (<span id="frontLayersBadge">0</span> capas)</button>
+              <button type="button" class="side-btn" id="btnSideBack" data-side="back">🔙 DISEÑAR ESPALDA (<span id="backLayersBadge">0</span> capas)</button>
             </div>
           </div>
           <div class="control-row">
@@ -399,7 +400,7 @@
         <div class="panel-box">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <h3 style="margin:0;font-size:15px;">Compositor Dual Flat-Lay (1080×1920)</h3>
-            <button type="button" class="btn btn-sm" id="btnBackToFitter">← Volver a ajustar en Probador</button>
+            <button type="button" class="btn btn-sm" id="btnBackToFitter">← Volver a editar en Probador</button>
           </div>
           <div class="control-row">
             <label>Plantilla de Historia</label>
@@ -410,7 +411,7 @@
             </select>
           </div>
           <div class="control-row" id="storyDualProjectRow">
-            <label>Origen del Conjunto Dual (Replicación 1:1)</label>
+            <label>Prenda Armada (Frente + Espalda)</label>
             <select id="storyDualSource"></select>
           </div>
           <div class="control-row">
@@ -421,25 +422,6 @@
               <option value="#1a1a1c">Carbón (#1a1a1c)</option>
               <option value="#ccba98">Beige Arena (#ccba98)</option>
             </select>
-          </div>
-          <div class="control-row" id="storyPrimaryRow">
-            <label>Espalda (Composición o Arte)</label>
-            <select id="storySourcePrimary"></select>
-          </div>
-          <div class="control-row" id="storySecondaryRow">
-            <label>Frente (Composición o Arte)</label>
-            <select id="storySourceSecondary"></select>
-          </div>
-          <div class="control-row" id="storyFrontPlacementRow">
-            <label>Ubicación Frente (Solo modo manual)</label>
-            <select id="storyFrontPlacement">
-              <option value="center" selected>Centro Frente (cx=426, top=475, w=215)</option>
-              <option value="chest">Pecho Izquierdo (cx=525, top=465, w=115)</option>
-            </select>
-          </div>
-          <div class="control-row" id="storyHemRow">
-            <label>Detalle Opcional Dobladillo (Solo modo manual)</label>
-            <select id="storySourceHem"></select>
           </div>
           <div class="control-row">
             <label>Aura / Color de Fondo OOO DARK</label>
@@ -1423,50 +1405,26 @@
     });
 
     // ==================== MÓDULO 3: HISTORIAS (1080x1920) ====================
-    // Mapeo 1:1 calibrado entre el torso del Probador (9:16) y las siluetas del Dual Flat-Lay (1080x1920)
-    const PROBADOR_TORSO_BOUNDS = { xMin: 16, xMax: 84, yMin: 20, yMax: 78 };
-    const FLATLAY_FRONT_TORSO = { left: 172, top: 317, width: 514, height: 758 };
+    // Mapeo 1:1 exacto entre el torso del Probador (9:16: x=[22%,78%], y=[31%,83%]) y el Dual Flat-Lay (1080x1920)
+    const PROBADOR_TORSO_BOUNDS = { xMin: 22, xMax: 78, yMin: 31, yMax: 83 };
+    const FLATLAY_FRONT_TORSO = { left: 176, top: 310, width: 508, height: 765 };
     const FLATLAY_BACK_TORSO = { left: 417, top: 888, width: 509, height: 733 };
 
     function populateStorySources() {
       const dualSel = $("storyDualSource");
-      if (dualSel) {
-        const prevDual = dualSel.value;
-        dualSel.innerHTML = [
-          `<option value="probador:activo">Diseño Activo del Probador (${garmentProject.frontLayers.length}F + ${garmentProject.backLayers.length}E)</option>`,
-          SAVED_COMPOSITIONS.length
-            ? `<optgroup label="Conjuntos Guardados">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${(c.frontLayers || []).length}F + ${(c.backLayers || c.layers || []).length}E)</option>`).join("")}</optgroup>`
-            : "",
-          `<option value="manual">Modo Manual Individual (Artes por separado)</option>`,
-        ].join("");
-        if (prevDual && [...dualSel.options].some((o) => o.value === prevDual)) {
-          dualSel.value = prevDual;
-        }
-      }
-
-      const optionsHtml = [
+      if (!dualSel) return;
+      const prevDual = dualSel.value;
+      dualSel.innerHTML = [
+        `<option value="probador:activo">Diseño Actual del Probador Multicapa (Frente + Espalda — ${garmentProject.frontLayers.length}F + ${garmentProject.backLayers.length}E)</option>`,
         SAVED_COMPOSITIONS.length
-          ? `<optgroup label="Composiciones Multicapa Armadas">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${c.layers.length} capas)</option>`).join("")}</optgroup>`
+          ? `<optgroup label="Composiciones Guardadas (Frente + Espalda)">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${(c.frontLayers || []).length}F + ${(c.backLayers || c.layers || []).length}E)</option>`).join("")}</optgroup>`
           : "",
-        `<optgroup label="Artes / Diseños Individuales">${allDesigns().map((d) => `<option value="art:${d.id}">${escHtml(d.drop)} — ${escHtml(d.title)}</option>`).join("")}</optgroup>`
       ].join("");
-
-      const pSel = $("storySourcePrimary");
-      const sSel = $("storySourceSecondary");
-      const hSel = $("storySourceHem");
-      const prevP = pSel.value;
-      const prevS = sSel.value;
-      const prevH = hSel ? hSel.value : "";
-
-      pSel.innerHTML = optionsHtml;
-      sSel.innerHTML = optionsHtml;
-      if (hSel) {
-        hSel.innerHTML = `<option value="">Ninguno (sin detalle en dobladillo)</option>` + optionsHtml;
-        if (prevH) hSel.value = prevH;
+      if (prevDual && [...dualSel.options].some((o) => o.value === prevDual)) {
+        dualSel.value = prevDual;
+      } else {
+        dualSel.value = "probador:activo";
       }
-      if (prevP) pSel.value = prevP;
-      if (prevS) sSel.value = prevS;
-      else if (sSel.options.length > 1) sSel.selectedIndex = 1;
     }
 
     function resolveDualProjectSource(dualVal) {
@@ -1622,19 +1580,18 @@
       const aura = $("storyAura").value;
       const dualVal = $("storyDualSource") ? $("storyDualSource").value : "probador:activo";
       const isDual = tpl === "dual_story";
-      const isFaithfulDual = isDual && dualVal !== "manual";
+      const dualProject = resolveDualProjectSource(dualVal) || {
+        frontLayers: garmentProject.frontLayers,
+        backLayers: garmentProject.backLayers,
+        garmentTone: garmentProject.garmentTone,
+        drop_num: "",
+      };
 
-      const tone = $("storyGarmentTone") ? $("storyGarmentTone").value : (garmentProject.garmentTone || "#121214");
+      const tone = $("storyGarmentTone") ? $("storyGarmentTone").value : (dualProject.garmentTone || "#121214");
       const isDarkTone = tone === "#121214" || tone === "#1a1a1c";
       const title = $("storyTitle").value.trim() || "ON RAD4R // DROP";
       const subtitle = $("storySubtitle").value.trim() || "OOO DARK EDITION";
       const cta = $("storyCta").value.trim() || "ON RAD4R STUDIO";
-
-      if ($("storyDualProjectRow")) $("storyDualProjectRow").style.display = isDual ? "flex" : "none";
-      if ($("storyPrimaryRow")) $("storyPrimaryRow").style.display = (!isDual || !isFaithfulDual) ? "flex" : "none";
-      $("storySecondaryRow").style.display = (isDual && !isFaithfulDual) ? "flex" : "none";
-      if ($("storyFrontPlacementRow")) $("storyFrontPlacementRow").style.display = (isDual && !isFaithfulDual) ? "flex" : "none";
-      if ($("storyHemRow")) $("storyHemRow").style.display = (isDual && !isFaithfulDual) ? "flex" : "none";
 
       if (isDual) {
         // Fondo real Dual Flat-Lay 1080x1920
@@ -1703,27 +1660,10 @@
         ctx.fillText(subtitle.toUpperCase().slice(0, 48), 72, logoBottomY + 52);
         ctx.restore();
 
-        const dualProject = isFaithfulDual ? resolveDualProjectSource(dualVal) : null;
-        if (dualProject) {
-          await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_TORSO);
-          await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_TORSO);
-          if (dualProject.drop_num && !$("storyDropNum").value) $("storyDropNum").value = dualProject.drop_num;
-          $("storyLog").textContent = `Replicación 1:1 aplicada (${dualProject.frontLayers.length} frente + ${dualProject.backLayers.length} espalda · tono ${tone}).`;
-        } else {
-          const frontPlacement = $("storyFrontPlacement") ? $("storyFrontPlacement").value : "center";
-          const frontCfg = frontPlacement === "chest"
-            ? { cx: 525, topY: 465, width: 115 }
-            : { cx: 426, topY: 475, width: 215 };
-          await drawStoryLayerPlacement(ctx, $("storySourceSecondary").value, "frente", frontCfg);
-
-          const hemVal = $("storySourceHem") ? $("storySourceHem").value : "";
-          if (hemVal) {
-            await drawStoryLayerPlacement(ctx, hemVal, "frente", { cx: 268, topY: 848, width: 172 });
-          }
-
-          const gBack = await drawStoryLayerPlacement(ctx, $("storySourcePrimary").value, "espalda", { cx: 670, cy: 1245, width: 370 });
-          if (gBack?.drop_num && !$("storyDropNum").value) $("storyDropNum").value = gBack.drop_num;
-        }
+        await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_TORSO);
+        await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_TORSO);
+        if (dualProject.drop_num && !$("storyDropNum").value) $("storyDropNum").value = dualProject.drop_num;
+        $("storyLog").textContent = `Replicación 1:1 exacta (${dualProject.frontLayers.length} frente + ${dualProject.backLayers.length} espalda · tono ${tone}).`;
 
         // Firma ON RAD4R en cx=670, top_y=1562
         ctx.save();
@@ -1736,7 +1676,7 @@
         return;
       }
 
-      // Plantillas simples (single_front / single_back)
+      // Plantillas simples (single_front / single_back) tomadas directamente de la Prenda Armada
       ctx.fillStyle = "#08090c";
       ctx.fillRect(0, 0, W, H);
       const grad = ctx.createRadialGradient(W / 2, H * 0.45, 60, W / 2, H * 0.45, 760);
@@ -1764,7 +1704,13 @@
       ctx.font = "600 28px Segoe UI, sans-serif";
       ctx.fillText(subtitle.slice(0, 44), W / 2, 248);
 
-      const g1 = resolveStoryGarment($("storySourcePrimary").value, tpl === "single_front" ? "frente" : "espalda");
+      const sideView = tpl === "single_front" ? "frente" : "espalda";
+      const base = INVENTORY.bases.find((b) => b.view === sideView) || INVENTORY.bases[0];
+      const g1 = {
+        baseUrl: tpl === "single_front" ? (garmentProject.frontBaseUrl || base?.url || "") : (garmentProject.backBaseUrl || base?.url || ""),
+        layers: tpl === "single_front" ? dualProject.frontLayers : dualProject.backLayers,
+        drop_num: dualProject.drop_num || "",
+      };
       if (g1.drop_num && !$("storyDropNum").value) $("storyDropNum").value = g1.drop_num;
       const lbl = tpl === "single_front" ? "FRENTE" : "ESPALDA";
       await drawGarmentOnStoryCtx(ctx, g1, 140, 315, 800, 1220, lbl);
@@ -1802,7 +1748,7 @@
         renderStoryCanvas();
       });
     }
-    ["storyTemplate", "storySourcePrimary", "storySourceSecondary", "storyFrontPlacement", "storySourceHem", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
+    ["storyTemplate", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
       if (!$(id)) return;
       $(id).addEventListener("input", renderStoryCanvas);
       $(id).addEventListener("change", renderStoryCanvas);
