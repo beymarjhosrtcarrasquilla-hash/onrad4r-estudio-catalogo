@@ -128,6 +128,9 @@
       user-select: none; touch-action: none;
     }
     .garment-stage img.base-img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .stage-tone-overlay {
+      position: absolute; inset: 0; pointer-events: none; z-index: 1; transition: 0.2s ease;
+    }
     .garment-stage img.art-layer {
       position: absolute; transform: translate(-50%, -50%);
       cursor: grab; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
@@ -136,6 +139,18 @@
     .garment-stage img.art-layer.active-layer {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(0, 229, 160, 0.25);
+    }
+    .side-switcher { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .side-btn {
+      background: var(--bg); color: var(--muted); border: 1px solid var(--border);
+      border-radius: 7px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+      letter-spacing: 0.04em; transition: 0.15s;
+    }
+    .side-btn.active {
+      background: var(--accent-dim); color: var(--accent); border-color: var(--accent);
+    }
+    .btn-hero {
+      width: 100%; padding: 11px 14px; font-size: 13px; font-weight: 800; letter-spacing: 0.03em;
     }
 
     .layers-list { display: flex; flex-direction: column; gap: 6px; max-height: 210px; overflow-y: auto; }
@@ -273,13 +288,29 @@
     <section id="tab-fitter" class="module">
       <div class="fitter-layout">
         <div class="panel-box">
-          <h3 style="margin:0;font-size:15px;">Probador Multicapa en Prenda</h3>
+          <h3 style="margin:0;font-size:15px;">Probador Multicapa Dual (Frente + Espalda)</h3>
           <div class="control-row">
-            <label>Base de Camiseta Real (assets/bases/)</label>
+            <label>Lado Activo de la Prenda</label>
+            <div class="side-switcher">
+              <button type="button" class="side-btn active" id="btnSideFront" data-side="front">CAMISETA FRENTE (<span id="frontLayersBadge">0</span>)</button>
+              <button type="button" class="side-btn" id="btnSideBack" data-side="back">CAMISETA ESPALDA (<span id="backLayersBadge">0</span>)</button>
+            </div>
+          </div>
+          <div class="control-row">
+            <label>Tono de Tela Unificado (Frente + Espalda)</label>
+            <select id="fitterGarmentTone">
+              <option value="#121214" selected>Negro Sólido (#121214)</option>
+              <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
+              <option value="#1a1a1c">Carbón (#1a1a1c)</option>
+              <option value="#ccba98">Beige Arena (#ccba98)</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Base de Camiseta (<span id="lblBaseSide">Frente</span> — assets/bases/)</label>
             <select id="fitterBaseSelect"></select>
           </div>
           <div class="control-row">
-            <label>Añadir Diseño / Logo a la Prenda</label>
+            <label>Añadir Diseño / Logo al Lado Activo</label>
             <div style="display:flex;gap:6px;">
               <select id="fitterArtSelect" style="flex:1;min-width:0;"></select>
               <button class="btn btn-primary" id="btnAddLayer">+ Agregar diseño</button>
@@ -320,12 +351,14 @@
           </div>
 
           <div class="control-row">
-            <label>Guardar Combinación Completa (Base + Capas)</label>
+            <label>Guardar Conjunto Completo (Frente + Espalda + Tono)</label>
             <div style="display:flex;gap:6px;">
               <input type="text" id="compNameInput" placeholder="Nombre ej. Drop 28 Huxley Dual" style="flex:1;" />
               <button class="btn btn-primary" id="btnSaveComposition">Guardar Composición</button>
             </div>
           </div>
+
+          <button type="button" class="btn btn-primary btn-hero" id="btnGoDualStory">Generar Historia Dual (1080×1920) →</button>
 
           <div class="control-row">
             <label>Prendas Armadas Guardadas (<span id="savedCompCount">0</span>)</label>
@@ -347,12 +380,13 @@
           <label style="font-size:12px;display:flex;align-items:center;gap:6px;">
             <input type="checkbox" id="renderSendTg" /> Enviar resultado a Telegram
           </label>
-          <div class="log-box" id="fitterLog">Probador multicapa listo. Agrega varios diseños o arrastra directo sobre la prenda.</div>
+          <div class="log-box" id="fitterLog">Probador dual listo. Diseña Frente y Espalda por separado y pulsa "Generar Historia Dual →".</div>
         </div>
 
         <div class="stage-wrap">
           <div class="garment-stage" id="garmentStage">
             <img id="stageBaseImg" class="base-img" alt="Base prenda" />
+            <div id="stageToneOverlay" class="stage-tone-overlay"></div>
             <div id="stageLayersContainer"></div>
           </div>
         </div>
@@ -363,7 +397,10 @@
     <section id="tab-stories" class="module">
       <div class="stories-layout">
         <div class="panel-box">
-          <h3 style="margin:0;font-size:15px;">Creador de Historias (1080×1920)</h3>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h3 style="margin:0;font-size:15px;">Compositor Dual Flat-Lay (1080×1920)</h3>
+            <button type="button" class="btn btn-sm" id="btnBackToFitter">← Volver a ajustar en Probador</button>
+          </div>
           <div class="control-row">
             <label>Plantilla de Historia</label>
             <select id="storyTemplate">
@@ -372,8 +409,12 @@
               <option value="single_front">Historia Simple — Frente</option>
             </select>
           </div>
+          <div class="control-row" id="storyDualProjectRow">
+            <label>Origen del Conjunto Dual (Replicación 1:1)</label>
+            <select id="storyDualSource"></select>
+          </div>
           <div class="control-row">
-            <label>Tono de Prenda</label>
+            <label>Tono de Prenda (Sincronizado)</label>
             <select id="storyGarmentTone">
               <option value="#121214" selected>Negro Sólido (#121214)</option>
               <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
@@ -381,7 +422,7 @@
               <option value="#ccba98">Beige Arena (#ccba98)</option>
             </select>
           </div>
-          <div class="control-row">
+          <div class="control-row" id="storyPrimaryRow">
             <label>Espalda (Composición o Arte)</label>
             <select id="storySourcePrimary"></select>
           </div>
@@ -390,14 +431,14 @@
             <select id="storySourceSecondary"></select>
           </div>
           <div class="control-row" id="storyFrontPlacementRow">
-            <label>Ubicación Frente</label>
+            <label>Ubicación Frente (Solo modo manual)</label>
             <select id="storyFrontPlacement">
               <option value="center" selected>Centro Frente (cx=426, top=475, w=215)</option>
               <option value="chest">Pecho Izquierdo (cx=525, top=465, w=115)</option>
             </select>
           </div>
           <div class="control-row" id="storyHemRow">
-            <label>Detalle Opcional Dobladillo (cx=268, top=848, w=172)</label>
+            <label>Detalle Opcional Dobladillo (Solo modo manual)</label>
             <select id="storySourceHem"></select>
           </div>
           <div class="control-row">
@@ -539,11 +580,31 @@
     let SAVED_COMPOSITIONS = [];
     let CATALOG1_ITEMS = [];
 
-    const fitterState = {
-      baseUrl: "",
-      layers: [],
+    const FRONT_BASE_DEFAULT = "./assets/bases/base_maestra_camiseta_negra_perchero.jpg";
+    const BACK_BASE_DEFAULT = "./assets/bases/base_maestra_camiseta_negra_espalda.jpg";
+
+    const garmentProject = {
+      activeSide: "front", // "front" | "back"
+      garmentTone: "#121214",
+      frontBaseUrl: FRONT_BASE_DEFAULT,
+      backBaseUrl: BACK_BASE_DEFAULT,
+      frontLayers: [],
+      backLayers: [],
       activeUid: null,
     };
+
+    function getSideLayers(side = garmentProject.activeSide) {
+      return side === "front" ? garmentProject.frontLayers : garmentProject.backLayers;
+    }
+
+    function setSideLayers(layers, side = garmentProject.activeSide) {
+      if (side === "front") garmentProject.frontLayers = layers;
+      else garmentProject.backLayers = layers;
+    }
+
+    function getSideBaseUrl(side = garmentProject.activeSide) {
+      return side === "front" ? garmentProject.frontBaseUrl : garmentProject.backBaseUrl;
+    }
 
     const $ = (id) => document.getElementById(id);
     const pxToCm = (px) => Math.round((px / PX_PER_CM) * 100) / 100;
@@ -765,6 +826,8 @@
         card.querySelector(".app2-chk").addEventListener("change", saveItem);
         card.querySelector(".btn-try").addEventListener("click", () => {
           $("fitterArtSelect").value = d.id;
+          const targetSide = (d.category === "arte") ? "back" : "front";
+          switchFitterSide(targetSide);
           addLayerFromDesign(d, true);
           if (d.drop_num) $("renderDropNum").value = d.drop_num;
           switchTab("fitter");
@@ -820,7 +883,48 @@
       }
     });
 
-    // ==================== MÓDULO 2: PROBADOR MULTICAPA ====================
+    // ==================== MÓDULO 2: PROBADOR MULTICAPA DUAL ====================
+    function applyStageToneOverlay() {
+      const ov = $("stageToneOverlay");
+      if (!ov) return;
+      const tone = garmentProject.garmentTone || "#121214";
+      if (tone === "#FFFFFF") {
+        ov.style.background = "rgba(255,255,255,0.42)";
+        ov.style.mixBlendMode = "screen";
+      } else if (tone === "#121214") {
+        ov.style.background = "transparent";
+        ov.style.mixBlendMode = "normal";
+      } else {
+        ov.style.background = tone;
+        ov.style.opacity = tone === "#ccba98" ? "0.52" : "0.35";
+        ov.style.mixBlendMode = "multiply";
+      }
+      if (tone === "#FFFFFF" || tone === "#121214") ov.style.opacity = "1";
+    }
+
+    function setGarmentTone(tone, triggerStory = false) {
+      garmentProject.garmentTone = tone || "#121214";
+      if ($("fitterGarmentTone")) $("fitterGarmentTone").value = garmentProject.garmentTone;
+      if ($("storyGarmentTone")) $("storyGarmentTone").value = garmentProject.garmentTone;
+      applyStageToneOverlay();
+      if (triggerStory && $("tab-stories").classList.contains("active")) {
+        renderStoryCanvas();
+      }
+    }
+
+    function switchFitterSide(side) {
+      garmentProject.activeSide = side === "back" ? "back" : "front";
+      const isFront = garmentProject.activeSide === "front";
+      if ($("btnSideFront")) $("btnSideFront").classList.toggle("active", isFront);
+      if ($("btnSideBack")) $("btnSideBack").classList.toggle("active", !isFront);
+      if ($("lblBaseSide")) $("lblBaseSide").textContent = isFront ? "Frente" : "Espalda";
+      const baseUrl = getSideBaseUrl();
+      if ($("fitterBaseSelect") && baseUrl) $("fitterBaseSelect").value = baseUrl;
+      const layers = getSideLayers();
+      garmentProject.activeUid = layers[layers.length - 1]?.uid || null;
+      renderFitterStage();
+    }
+
     function populateFitterSelects() {
       const baseSel = $("fitterBaseSelect");
       const artSel = $("fitterArtSelect");
@@ -828,21 +932,32 @@
       const prevArt = artSel.value;
 
       baseSel.innerHTML = INVENTORY.bases
+        .filter((b) => b.view !== "dual")
         .map((b) => `<option value="${b.url}">${escHtml(b.label)} (${escHtml(b.fabric)})</option>`)
         .join("");
       artSel.innerHTML = allDesigns()
         .map((d) => `<option value="${d.id}">${escHtml(d.drop)} — ${escHtml(d.title)} (${d.category})</option>`)
         .join("");
 
-      if (prevBase) baseSel.value = prevBase;
+      const hasFront = INVENTORY.bases.find((b) => b.url === FRONT_BASE_DEFAULT) || INVENTORY.bases.find((b) => b.view === "frente") || INVENTORY.bases[0];
+      const hasBack = INVENTORY.bases.find((b) => b.url === BACK_BASE_DEFAULT) || INVENTORY.bases.find((b) => b.view === "espalda") || INVENTORY.bases[0];
+      if (!prevBase) {
+        if (hasFront) garmentProject.frontBaseUrl = hasFront.url;
+        if (hasBack) garmentProject.backBaseUrl = hasBack.url;
+      }
       if (prevArt) artSel.value = prevArt;
-      fitterState.baseUrl = baseSel.value || (INVENTORY.bases[0]?.url || "");
 
-      if (!fitterState.layers.length && allDesigns().length) {
+      const activeBase = getSideBaseUrl();
+      if (activeBase) baseSel.value = activeBase;
+
+      if (!garmentProject.frontLayers.length && !garmentProject.backLayers.length && allDesigns().length) {
         const first = allDesigns().find((d) => d.id === artSel.value) || allDesigns()[0];
+        const initSide = (first.category === "arte") ? "back" : "front";
+        garmentProject.activeSide = initSide;
         addLayerFromDesign(first, false);
+        switchFitterSide(initSide);
       } else {
-        renderFitterStage();
+        switchFitterSide(garmentProject.activeSide);
       }
     }
 
@@ -863,17 +978,19 @@
         drop: d.drop,
         drop_num: d.drop_num || "",
         url: d.url,
+        view: garmentProject.activeSide === "front" ? "frente" : "espalda",
         x: coords.x,
         y: coords.y,
         scale: coords.scale,
         opacity: 95,
       };
-      if (resetIfSingle && fitterState.layers.length <= 1) {
-        fitterState.layers = [layer];
+      const layers = getSideLayers();
+      if (resetIfSingle && layers.length <= 1) {
+        setSideLayers([layer]);
       } else {
-        fitterState.layers.push(layer);
+        layers.push(layer);
       }
-      fitterState.activeUid = layer.uid;
+      garmentProject.activeUid = layer.uid;
       if (d.drop_num) $("renderDropNum").value = d.drop_num;
       if (!$("compNameInput").value.trim()) {
         $("compNameInput").value = `${d.drop} — ${d.title}`;
@@ -882,7 +999,7 @@
     }
 
     function getActiveLayer() {
-      return fitterState.layers.find((l) => l.uid === fitterState.activeUid) || null;
+      return getSideLayers().find((l) => l.uid === garmentProject.activeUid) || null;
     }
 
     function syncSlidersToActiveLayer() {
@@ -894,7 +1011,7 @@
         return;
       }
       box.style.opacity = "1";
-      $("activeLayerTitle").textContent = `Capa: ${active.drop} · ${active.title}`;
+      $("activeLayerTitle").textContent = `Capa (${garmentProject.activeSide === "front" ? "Frente" : "Espalda"}): ${active.drop} · ${active.title}`;
       $("fitterScale").value = active.scale;
       $("fitterX").value = active.x;
       $("fitterY").value = active.y;
@@ -906,16 +1023,19 @@
     }
 
     function renderLayersList() {
-      $("layersCount").textContent = fitterState.layers.length;
+      const layers = getSideLayers();
+      $("layersCount").textContent = layers.length;
+      if ($("frontLayersBadge")) $("frontLayersBadge").textContent = garmentProject.frontLayers.length;
+      if ($("backLayersBadge")) $("backLayersBadge").textContent = garmentProject.backLayers.length;
       const list = $("layersList");
-      if (!fitterState.layers.length) {
-        list.innerHTML = `<div style="font-size:12px;color:var(--muted);">Sin capas. Usa "+ Agregar diseño".</div>`;
+      if (!layers.length) {
+        list.innerHTML = `<div style="font-size:12px;color:var(--muted);">Sin capas en ${garmentProject.activeSide === "front" ? "Frente" : "Espalda"}. Usa "+ Agregar diseño".</div>`;
         return;
       }
       list.innerHTML = "";
-      fitterState.layers.forEach((l, idx) => {
+      layers.forEach((l, idx) => {
         const row = document.createElement("div");
-        row.className = "layer-item" + (l.uid === fitterState.activeUid ? " active" : "");
+        row.className = "layer-item" + (l.uid === garmentProject.activeUid ? " active" : "");
         row.innerHTML = `
           <img src="${l.url}" alt="${escHtml(l.title)}" />
           <div class="layer-item-info">
@@ -931,31 +1051,31 @@
         `;
         row.addEventListener("click", (e) => {
           if (e.target.closest("button")) return;
-          fitterState.activeUid = l.uid;
+          garmentProject.activeUid = l.uid;
           renderFitterStage();
         });
         row.querySelector(".act-up").addEventListener("click", () => {
-          if (idx < fitterState.layers.length - 1) {
-            [fitterState.layers[idx], fitterState.layers[idx + 1]] = [fitterState.layers[idx + 1], fitterState.layers[idx]];
+          if (idx < layers.length - 1) {
+            [layers[idx], layers[idx + 1]] = [layers[idx + 1], layers[idx]];
             renderFitterStage();
           }
         });
         row.querySelector(".act-dn").addEventListener("click", () => {
           if (idx > 0) {
-            [fitterState.layers[idx], fitterState.layers[idx - 1]] = [fitterState.layers[idx - 1], fitterState.layers[idx]];
+            [layers[idx], layers[idx - 1]] = [layers[idx - 1], layers[idx]];
             renderFitterStage();
           }
         });
         row.querySelector(".act-dup").addEventListener("click", () => {
           const copy = { ...l, uid: uid(), x: Math.min(85, l.x + 5), y: Math.min(85, l.y + 5) };
-          fitterState.layers.splice(idx + 1, 0, copy);
-          fitterState.activeUid = copy.uid;
+          layers.splice(idx + 1, 0, copy);
+          garmentProject.activeUid = copy.uid;
           renderFitterStage();
         });
         row.querySelector(".act-del").addEventListener("click", () => {
-          fitterState.layers.splice(idx, 1);
-          if (fitterState.activeUid === l.uid) {
-            fitterState.activeUid = fitterState.layers[fitterState.layers.length - 1]?.uid || null;
+          layers.splice(idx, 1);
+          if (garmentProject.activeUid === l.uid) {
+            garmentProject.activeUid = layers[layers.length - 1]?.uid || null;
           }
           renderFitterStage();
         });
@@ -964,15 +1084,16 @@
     }
 
     function renderFitterStage() {
-      $("stageBaseImg").src = fitterState.baseUrl || "";
+      $("stageBaseImg").src = getSideBaseUrl() || "";
+      applyStageToneOverlay();
       const container = $("stageLayersContainer");
       container.innerHTML = "";
-      fitterState.layers.forEach((l, idx) => {
+      getSideLayers().forEach((l, idx) => {
         const img = document.createElement("img");
         img.src = l.url;
         img.alt = l.title;
         img.dataset.uid = l.uid;
-        img.className = "art-layer" + (l.uid === fitterState.activeUid ? " active-layer" : "");
+        img.className = "art-layer" + (l.uid === garmentProject.activeUid ? " active-layer" : "");
         img.style.left = l.x + "%";
         img.style.top = l.y + "%";
         img.style.maxWidth = l.scale + "%";
@@ -980,7 +1101,7 @@
         img.style.zIndex = String(idx + 2);
 
         const startDrag = (e) => {
-          fitterState.activeUid = l.uid;
+          garmentProject.activeUid = l.uid;
           draggingUid = l.uid;
           renderLayersList();
           syncSlidersToActiveLayer();
@@ -997,8 +1118,16 @@
       syncSlidersToActiveLayer();
     }
 
+    $("btnSideFront").addEventListener("click", () => switchFitterSide("front"));
+    $("btnSideBack").addEventListener("click", () => switchFitterSide("back"));
+    $("fitterGarmentTone").addEventListener("change", (e) => setGarmentTone(e.target.value, true));
+
     $("fitterBaseSelect").addEventListener("change", () => {
-      fitterState.baseUrl = $("fitterBaseSelect").value;
+      if (garmentProject.activeSide === "front") {
+        garmentProject.frontBaseUrl = $("fitterBaseSelect").value;
+      } else {
+        garmentProject.backBaseUrl = $("fitterBaseSelect").value;
+      }
       renderFitterStage();
     });
 
@@ -1031,7 +1160,7 @@
 
     let draggingUid = null;
     const moveActiveLayerTo = (clientX, clientY) => {
-      const active = fitterState.layers.find((l) => l.uid === draggingUid);
+      const active = getSideLayers().find((l) => l.uid === draggingUid);
       if (!active) return;
       const rect = $("garmentStage").getBoundingClientRect();
       active.x = Math.max(10, Math.min(90, Math.round(((clientX - rect.left) / rect.width) * 100)));
@@ -1059,62 +1188,106 @@
       });
     }
 
-    async function renderCompositionToCanvas(comp, width = 360, height = 640) {
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
+    async function renderSingleSideToCtx(ctx, baseUrl, layers, boxX, boxY, boxW, boxH, tone) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(boxX, boxY, boxW, boxH);
+      ctx.clip();
       ctx.fillStyle = "#0e1015";
-      ctx.fillRect(0, 0, width, height);
-
-      const baseImg = await loadImageSafe(comp.baseUrl);
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      const baseImg = await loadImageSafe(baseUrl);
       if (baseImg) {
-        const scale = Math.max(width / baseImg.width, height / baseImg.height);
+        const scale = Math.max(boxW / baseImg.width, boxH / baseImg.height);
         const dw = baseImg.width * scale;
         const dh = baseImg.height * scale;
-        ctx.drawImage(baseImg, (width - dw) / 2, (height - dh) / 2, dw, dh);
+        ctx.drawImage(baseImg, boxX + (boxW - dw) / 2, boxY + (boxH - dh) / 2, dw, dh);
       }
-      for (const layer of (comp.layers || [])) {
+      if (tone && tone !== "#121214") {
+        ctx.save();
+        if (tone === "#FFFFFF") {
+          ctx.globalCompositeOperation = "screen";
+          ctx.fillStyle = "rgba(255,255,255,0.42)";
+        } else {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = tone;
+          ctx.globalAlpha = tone === "#ccba98" ? 0.52 : 0.35;
+        }
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+        ctx.restore();
+      }
+      for (const layer of (layers || [])) {
         const artImg = await loadImageSafe(layer.url);
         if (!artImg) continue;
-        const maxW = width * (layer.scale / 100);
-        const ratio = artImg.height / artImg.width;
-        const dw = maxW;
-        const dh = dw * ratio;
-        const cx = width * (layer.x / 100);
-        const cy = height * (layer.y / 100);
+        const dw = boxW * ((layer.scale || 46) / 100);
+        const dh = dw * (artImg.height / artImg.width);
+        const cx = boxX + boxW * ((layer.x || 50) / 100);
+        const cy = boxY + boxH * ((layer.y || 46) / 100);
         ctx.save();
         ctx.globalAlpha = (layer.opacity ?? 95) / 100;
         ctx.drawImage(artImg, cx - dw / 2, cy - dh / 2, dw, dh);
         ctx.restore();
       }
+      ctx.restore();
+    }
+
+    async function renderCompositionToCanvas(comp, width = 320, height = 280) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      const halfW = Math.floor(width / 2);
+      const frontL = comp.frontLayers || [];
+      const backL = comp.backLayers || comp.layers || [];
+      await renderSingleSideToCtx(ctx, comp.frontBaseUrl || FRONT_BASE_DEFAULT, frontL, 0, 0, halfW, height, comp.garmentTone);
+      await renderSingleSideToCtx(ctx, comp.backBaseUrl || comp.baseUrl || BACK_BASE_DEFAULT, backL, halfW, 0, width - halfW, height, comp.garmentTone);
       return canvas.toDataURL("image/jpeg", 0.86);
     }
 
     $("btnSaveComposition").addEventListener("click", async () => {
-      if (!fitterState.layers.length) {
-        $("fitterLog").textContent = "Agrega al menos 1 diseño antes de guardar la composición.";
+      const totalLayers = garmentProject.frontLayers.length + garmentProject.backLayers.length;
+      if (!totalLayers) {
+        $("fitterLog").textContent = "Agrega al menos 1 diseño en Frente o Espalda antes de guardar.";
         return;
       }
       const baseOpt = $("fitterBaseSelect").selectedOptions[0];
-      const name = $("compNameInput").value.trim() || `Prenda Armada (${fitterState.layers.length} capas)`;
+      const name = $("compNameInput").value.trim() || `Conjunto Dual (${garmentProject.frontLayers.length}F + ${garmentProject.backLayers.length}E)`;
       const comp = {
         id: "comp_" + Date.now(),
         name,
-        baseUrl: fitterState.baseUrl,
-        baseLabel: baseOpt ? baseOpt.textContent : "Base Camiseta",
-        layers: fitterState.layers.map((l) => ({ ...l })),
+        garmentTone: garmentProject.garmentTone,
+        frontBaseUrl: garmentProject.frontBaseUrl,
+        backBaseUrl: garmentProject.backBaseUrl,
+        frontLayers: garmentProject.frontLayers.map((l) => ({ ...l })),
+        backLayers: garmentProject.backLayers.map((l) => ({ ...l })),
+        baseUrl: garmentProject.backBaseUrl || garmentProject.frontBaseUrl,
+        baseLabel: baseOpt ? baseOpt.textContent : "Conjunto Dual",
+        layers: [
+          ...garmentProject.frontLayers.map((l) => ({ ...l, side: "front" })),
+          ...garmentProject.backLayers.map((l) => ({ ...l, side: "back" })),
+        ],
         created_at: new Date().toISOString().slice(0, 19),
       };
-      comp.previewDataUrl = await renderCompositionToCanvas(comp, 270, 480);
+      comp.previewDataUrl = await renderCompositionToCanvas(comp, 320, 280);
       SAVED_COMPOSITIONS.unshift(comp);
       saveJsonStorage(COMP_STORAGE_KEY, SAVED_COMPOSITIONS);
       renderSavedCompositions();
       populateStorySources();
       populateCat1AddSelect();
       updateStatsBar();
-      $("fitterLog").textContent = `Composición "${name}" guardada (${comp.layers.length} capas). Ya disponible en Historias y Catálogo #1.`;
+      $("fitterLog").textContent = `Conjunto "${name}" guardado (${comp.frontLayers.length} frente + ${comp.backLayers.length} espalda). Disponible en Historias Dual y Catálogo #1.`;
     });
+
+    $("btnGoDualStory").addEventListener("click", () => {
+      switchTab("stories");
+      $("storyTemplate").value = "dual_story";
+      if ($("storyDualSource")) $("storyDualSource").value = "probador:activo";
+      if ($("storyGarmentTone")) $("storyGarmentTone").value = garmentProject.garmentTone;
+      const customName = $("compNameInput").value.trim();
+      if (customName) $("storyTitle").value = customName.toUpperCase();
+      renderStoryCanvas();
+    });
+
+    $("btnBackToFitter").addEventListener("click", () => switchTab("fitter"));
 
     function renderSavedCompositions() {
       $("savedCompCount").textContent = SAVED_COMPOSITIONS.length;
@@ -1125,13 +1298,15 @@
       }
       list.innerHTML = "";
       SAVED_COMPOSITIONS.forEach((c, idx) => {
+        const fCount = (c.frontLayers || []).length;
+        const bCount = (c.backLayers || (c.frontLayers ? [] : c.layers) || []).length;
         const div = document.createElement("div");
         div.className = "comp-item";
         div.innerHTML = `
           <img src="${c.previewDataUrl || c.baseUrl}" alt="${escHtml(c.name)}" />
           <div style="flex:1;min-width:0;">
             <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</strong>
-            <span style="color:var(--muted);font-size:11px;">${c.layers.length} capas · ${c.created_at.slice(0, 10)}</span>
+            <span style="color:var(--muted);font-size:11px;">${fCount}F + ${bCount}E · ${c.garmentTone || "#121214"} · ${c.created_at.slice(0, 10)}</span>
           </div>
           <button class="btn btn-sm act-load" title="Cargar en Probador">Cargar</button>
           <button class="btn btn-sm act-story" title="Enviar a Historias">Historia</button>
@@ -1139,16 +1314,24 @@
           <button class="btn btn-sm btn-danger act-del" title="Borrar">✕</button>
         `;
         div.querySelector(".act-load").addEventListener("click", () => {
-          fitterState.baseUrl = c.baseUrl;
-          $("fitterBaseSelect").value = c.baseUrl;
-          fitterState.layers = c.layers.map((l) => ({ ...l, uid: uid() }));
-          fitterState.activeUid = fitterState.layers[0]?.uid || null;
+          garmentProject.frontBaseUrl = c.frontBaseUrl || FRONT_BASE_DEFAULT;
+          garmentProject.backBaseUrl = c.backBaseUrl || c.baseUrl || BACK_BASE_DEFAULT;
+          if (c.frontLayers || c.backLayers) {
+            garmentProject.frontLayers = (c.frontLayers || []).map((l) => ({ ...l, uid: uid() }));
+            garmentProject.backLayers = (c.backLayers || []).map((l) => ({ ...l, uid: uid() }));
+          } else {
+            garmentProject.frontLayers = [];
+            garmentProject.backLayers = (c.layers || []).map((l) => ({ ...l, uid: uid() }));
+          }
+          setGarmentTone(c.garmentTone || "#121214");
           $("compNameInput").value = c.name;
-          renderFitterStage();
+          switchFitterSide(garmentProject.frontLayers.length ? "front" : "back");
         });
         div.querySelector(".act-story").addEventListener("click", () => {
           switchTab("stories");
-          $("storySourcePrimary").value = "comp:" + c.id;
+          $("storyTemplate").value = "dual_story";
+          if ($("storyDualSource")) $("storyDualSource").value = "comp:" + c.id;
+          if ($("storyGarmentTone") && c.garmentTone) setGarmentTone(c.garmentTone);
           $("storyTitle").value = c.name.toUpperCase();
           renderStoryCanvas();
         });
@@ -1171,24 +1354,16 @@
     async function runRemoteRender3D(drop_num, layout, send_telegram, logEl) {
       if (!drop_num) { logEl.textContent = "Ingresa un número de Drop (ej. 28)."; return; }
       if (!LOCAL_ONLINE) {
-        const toneEl = $("storyGarmentTone");
-        const toneVal = toneEl ? toneEl.value : "#121214";
+        const toneEl = $("storyGarmentTone") || $("fitterGarmentTone");
+        const toneVal = garmentProject.garmentTone || (toneEl ? toneEl.value : "#121214");
         const toneLabel = toneEl && toneEl.selectedOptions[0] ? toneEl.selectedOptions[0].textContent : toneVal;
-        const selText = (id) => {
-          const el = $(id);
-          return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent.trim() : "";
-        };
-        const fitterArts = LAYERS.length
-          ? LAYERS.map((l) => `${l.title || l.id} (${l.view || "frente"})`).join(" + ")
-          : "";
-        const storyArts = [
-          selText("storySourcePrimary") ? `Espalda: ${selText("storySourcePrimary")}` : "",
-          selText("storySourceSecondary") ? `Frente: ${selText("storySourceSecondary")}` : "",
-          selText("storySourceHem") ? `Dobladillo: ${selText("storySourceHem")}` : "",
-        ].filter(Boolean).join(" | ");
-        const artesElegidos = layout === "dual_story"
-          ? (storyArts || fitterArts || `Drop ${drop_num}`)
-          : (fitterArts || storyArts || `Drop ${drop_num}`);
+        const fmtLayer = (l, sideLabel) => `${l.title || l.artId} [${sideLabel} x=${l.x}% y=${l.y}% esc=${l.scale}% op=${l.opacity ?? 95}%]`;
+        const frontDetail = garmentProject.frontLayers.map((l) => fmtLayer(l, "Frente")).join(" + ");
+        const backDetail = garmentProject.backLayers.map((l) => fmtLayer(l, "Espalda")).join(" + ");
+        const dualDetail = [
+          frontDetail ? `FRENTE: ${frontDetail}` : "FRENTE: (sin capas)",
+          backDetail ? `ESPALDA: ${backDetail}` : "ESPALDA: (sin capas)",
+        ].join(" | ");
 
         const cmdRender = `python scripts/render_prendas_3d.py --only ${drop_num} --layout ${layout}`;
         const outFile = layout === "dual_story" ? `story_dual_drop_${drop_num}.jpg` : `promo_${drop_num}.jpg`;
@@ -1198,8 +1373,10 @@
           `FECHA: ${new Date().toISOString()}`,
           `DROP: ${drop_num}`,
           `LAYOUT: ${layout}`,
-          `TONO_TELA: ${toneLabel}`,
-          `ARTES_ELEGIDOS: ${artesElegidos}`,
+          `TONO_TELA: ${toneLabel} (${toneVal})`,
+          `ARTES_ELEGIDOS: ${dualDetail}`,
+          `CAPAS_FRENTE_JSON: ${JSON.stringify(garmentProject.frontLayers.map(({ title, artId, x, y, scale, opacity }) => ({ title, artId, x, y, scale, opacity })))}`,
+          `CAPAS_ESPALDA_JSON: ${JSON.stringify(garmentProject.backLayers.map(({ title, artId, x, y, scale, opacity }) => ({ title, artId, x, y, scale, opacity })))}`,
           `ENVIAR_TELEGRAM: ${send_telegram ? "si" : "no"}`,
           `COMANDO: ${cmdRender}`,
           `COMANDO_TELEGRAM: ${cmdTg}`,
@@ -1246,7 +1423,27 @@
     });
 
     // ==================== MÓDULO 3: HISTORIAS (1080x1920) ====================
+    // Mapeo 1:1 calibrado entre el torso del Probador (9:16) y las siluetas del Dual Flat-Lay (1080x1920)
+    const PROBADOR_TORSO_BOUNDS = { xMin: 16, xMax: 84, yMin: 20, yMax: 78 };
+    const FLATLAY_FRONT_TORSO = { left: 172, top: 317, width: 514, height: 758 };
+    const FLATLAY_BACK_TORSO = { left: 417, top: 888, width: 509, height: 733 };
+
     function populateStorySources() {
+      const dualSel = $("storyDualSource");
+      if (dualSel) {
+        const prevDual = dualSel.value;
+        dualSel.innerHTML = [
+          `<option value="probador:activo">Diseño Activo del Probador (${garmentProject.frontLayers.length}F + ${garmentProject.backLayers.length}E)</option>`,
+          SAVED_COMPOSITIONS.length
+            ? `<optgroup label="Conjuntos Guardados">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${(c.frontLayers || []).length}F + ${(c.backLayers || c.layers || []).length}E)</option>`).join("")}</optgroup>`
+            : "",
+          `<option value="manual">Modo Manual Individual (Artes por separado)</option>`,
+        ].join("");
+        if (prevDual && [...dualSel.options].some((o) => o.value === prevDual)) {
+          dualSel.value = prevDual;
+        }
+      }
+
       const optionsHtml = [
         SAVED_COMPOSITIONS.length
           ? `<optgroup label="Composiciones Multicapa Armadas">${SAVED_COMPOSITIONS.map((c) => `<option value="comp:${c.id}">${escHtml(c.name)} (${c.layers.length} capas)</option>`).join("")}</optgroup>`
@@ -1270,6 +1467,52 @@
       if (prevP) pSel.value = prevP;
       if (prevS) sSel.value = prevS;
       else if (sSel.options.length > 1) sSel.selectedIndex = 1;
+    }
+
+    function resolveDualProjectSource(dualVal) {
+      if (dualVal === "probador:activo") {
+        return {
+          frontLayers: garmentProject.frontLayers,
+          backLayers: garmentProject.backLayers,
+          garmentTone: garmentProject.garmentTone,
+          drop_num: garmentProject.backLayers[0]?.drop_num || garmentProject.frontLayers[0]?.drop_num || "",
+        };
+      }
+      if (dualVal && dualVal.startsWith("comp:")) {
+        const comp = SAVED_COMPOSITIONS.find((c) => c.id === dualVal.slice(5));
+        if (comp) {
+          return {
+            frontLayers: comp.frontLayers || [],
+            backLayers: comp.backLayers || comp.layers || [],
+            garmentTone: comp.garmentTone || "#121214",
+            drop_num: comp.backLayers?.[0]?.drop_num || comp.frontLayers?.[0]?.drop_num || comp.layers?.[0]?.drop_num || "",
+          };
+        }
+      }
+      return null;
+    }
+
+    async function projectProbadorLayersToFlatLay(ctx, layers, targetBox) {
+      if (!layers || !layers.length) return;
+      const srcW = PROBADOR_TORSO_BOUNDS.xMax - PROBADOR_TORSO_BOUNDS.xMin;
+      const srcH = PROBADOR_TORSO_BOUNDS.yMax - PROBADOR_TORSO_BOUNDS.yMin;
+      for (const layer of layers) {
+        const artImg = await loadImageSafe(layer.url);
+        if (!artImg) continue;
+        const relX = (layer.x - PROBADOR_TORSO_BOUNDS.xMin) / srcW;
+        const relY = (layer.y - PROBADOR_TORSO_BOUNDS.yMin) / srcH;
+        const relW = (layer.scale || 46) / srcW;
+        const dw = relW * targetBox.width;
+        const dh = dw * (artImg.height / artImg.width);
+        const cx = targetBox.left + relX * targetBox.width;
+        const cy = targetBox.top + relY * targetBox.height;
+        ctx.save();
+        ctx.globalAlpha = (layer.opacity ?? 95) / 100;
+        ctx.shadowColor = "rgba(0,0,0,0.35)";
+        ctx.shadowBlur = 10;
+        ctx.drawImage(artImg, cx - dw / 2, cy - dh / 2, dw, dh);
+        ctx.restore();
+      }
     }
 
     function resolveStoryGarment(sourceVal, defaultView) {
@@ -1377,23 +1620,27 @@
       const W = 1080, H = 1920;
       const tpl = $("storyTemplate").value;
       const aura = $("storyAura").value;
-      const tone = $("storyGarmentTone") ? $("storyGarmentTone").value : "#121214";
+      const dualVal = $("storyDualSource") ? $("storyDualSource").value : "probador:activo";
+      const isDual = tpl === "dual_story";
+      const isFaithfulDual = isDual && dualVal !== "manual";
+
+      const tone = $("storyGarmentTone") ? $("storyGarmentTone").value : (garmentProject.garmentTone || "#121214");
       const isDarkTone = tone === "#121214" || tone === "#1a1a1c";
       const title = $("storyTitle").value.trim() || "ON RAD4R // DROP";
       const subtitle = $("storySubtitle").value.trim() || "OOO DARK EDITION";
       const cta = $("storyCta").value.trim() || "ON RAD4R STUDIO";
 
-      const isDual = tpl === "dual_story";
-      $("storySecondaryRow").style.display = isDual ? "flex" : "none";
-      if ($("storyFrontPlacementRow")) $("storyFrontPlacementRow").style.display = isDual ? "flex" : "none";
-      if ($("storyHemRow")) $("storyHemRow").style.display = isDual ? "flex" : "none";
+      if ($("storyDualProjectRow")) $("storyDualProjectRow").style.display = isDual ? "flex" : "none";
+      if ($("storyPrimaryRow")) $("storyPrimaryRow").style.display = (!isDual || !isFaithfulDual) ? "flex" : "none";
+      $("storySecondaryRow").style.display = (isDual && !isFaithfulDual) ? "flex" : "none";
+      if ($("storyFrontPlacementRow")) $("storyFrontPlacementRow").style.display = (isDual && !isFaithfulDual) ? "flex" : "none";
+      if ($("storyHemRow")) $("storyHemRow").style.display = (isDual && !isFaithfulDual) ? "flex" : "none";
 
       if (isDual) {
         // Fondo real Dual Flat-Lay 1080x1920
         const bgImg = await loadImageSafe("./assets/bases/base_maestra_dual_flatlay_story.jpg");
         if (bgImg) {
           ctx.drawImage(bgImg, 0, 0, W, H);
-          // Tintar ambas siluetas de camiseta usando polígonos calibrados de render_prendas_3d.py
           const dualPolys = [
             [
               [355,304],[335,312],[310,326],[250,359],[195,407],[140,483],[90,553],[43,616],[28,641],
@@ -1435,7 +1682,7 @@
           ctx.fillRect(0, 0, W, H);
         }
 
-        // Cabecera superior izquierda (x=72, y=64): logo 480px (invertido a blanco en tela oscura) + edición en mayúsculas
+        // Cabecera superior izquierda (x=72, y=64): logo 480px + título de edición
         const logoImg = await loadImageSafe("./assets/logos/logo_on_rad4r_lineal_story.png");
         let logoBottomY = 140;
         if (logoImg) {
@@ -1456,22 +1703,27 @@
         ctx.fillText(subtitle.toUpperCase().slice(0, 48), 72, logoBottomY + 52);
         ctx.restore();
 
-        // Frente arriba a la izquierda (Centro: cx=426, top_y=475, w=215 | Pecho izq: cx=525, top_y=465, w=115)
-        const frontPlacement = $("storyFrontPlacement") ? $("storyFrontPlacement").value : "center";
-        const frontCfg = frontPlacement === "chest"
-          ? { cx: 525, topY: 465, width: 115 }
-          : { cx: 426, topY: 475, width: 215 };
-        await drawStoryLayerPlacement(ctx, $("storySourceSecondary").value, "frente", frontCfg);
+        const dualProject = isFaithfulDual ? resolveDualProjectSource(dualVal) : null;
+        if (dualProject) {
+          await projectProbadorLayersToFlatLay(ctx, dualProject.frontLayers, FLATLAY_FRONT_TORSO);
+          await projectProbadorLayersToFlatLay(ctx, dualProject.backLayers, FLATLAY_BACK_TORSO);
+          if (dualProject.drop_num && !$("storyDropNum").value) $("storyDropNum").value = dualProject.drop_num;
+          $("storyLog").textContent = `Replicación 1:1 aplicada (${dualProject.frontLayers.length} frente + ${dualProject.backLayers.length} espalda · tono ${tone}).`;
+        } else {
+          const frontPlacement = $("storyFrontPlacement") ? $("storyFrontPlacement").value : "center";
+          const frontCfg = frontPlacement === "chest"
+            ? { cx: 525, topY: 465, width: 115 }
+            : { cx: 426, topY: 475, width: 215 };
+          await drawStoryLayerPlacement(ctx, $("storySourceSecondary").value, "frente", frontCfg);
 
-        // Detalle opcional en dobladillo (cx=268, top_y=848, width=172)
-        const hemVal = $("storySourceHem") ? $("storySourceHem").value : "";
-        if (hemVal) {
-          await drawStoryLayerPlacement(ctx, hemVal, "frente", { cx: 268, topY: 848, width: 172 });
+          const hemVal = $("storySourceHem") ? $("storySourceHem").value : "";
+          if (hemVal) {
+            await drawStoryLayerPlacement(ctx, hemVal, "frente", { cx: 268, topY: 848, width: 172 });
+          }
+
+          const gBack = await drawStoryLayerPlacement(ctx, $("storySourcePrimary").value, "espalda", { cx: 670, cy: 1245, width: 370 });
+          if (gBack?.drop_num && !$("storyDropNum").value) $("storyDropNum").value = gBack.drop_num;
         }
-
-        // Espalda abajo a la derecha (cx=670, cy=1245, width=370)
-        const gBack = await drawStoryLayerPlacement(ctx, $("storySourcePrimary").value, "espalda", { cx: 670, cy: 1245, width: 370 });
-        if (gBack?.drop_num && !$("storyDropNum").value) $("storyDropNum").value = gBack.drop_num;
 
         // Firma ON RAD4R en cx=670, top_y=1562
         ctx.save();
@@ -1535,7 +1787,22 @@
       ctx.fillText("TALLAS S · M · L · XL  |  DTF 300 DPI  |  @ONRAD4R", W / 2, 1825);
     }
 
-    ["storyTemplate", "storyGarmentTone", "storySourcePrimary", "storySourceSecondary", "storyFrontPlacement", "storySourceHem", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
+    if ($("storyGarmentTone")) {
+      $("storyGarmentTone").addEventListener("change", (e) => {
+        setGarmentTone(e.target.value, false);
+        renderStoryCanvas();
+      });
+    }
+    if ($("storyDualSource")) {
+      $("storyDualSource").addEventListener("change", () => {
+        const compProj = resolveDualProjectSource($("storyDualSource").value);
+        if (compProj && compProj.garmentTone && $("storyGarmentTone")) {
+          setGarmentTone(compProj.garmentTone, false);
+        }
+        renderStoryCanvas();
+      });
+    }
+    ["storyTemplate", "storySourcePrimary", "storySourceSecondary", "storyFrontPlacement", "storySourceHem", "storyAura", "storyTitle", "storySubtitle", "storyCta"].forEach((id) => {
       if (!$(id)) return;
       $(id).addEventListener("input", renderStoryCanvas);
       $(id).addEventListener("change", renderStoryCanvas);
